@@ -22,15 +22,15 @@ Ese fue quizás el primer golpe verdadero del reencuentro: para la familia, nada
 
 Para ellos dos, todo.
 
-Al caer la tarde, José llegó acompañado de Mauricio.
+Al caer la tarde, José llegó acompañado de Antonio, su mejor amigo.
 
 Abrió la puerta del living y la vio.
 
 Por un segundo ninguno reaccionó.
 
-Mauricio sí.
+Antonio sí.
 
-Se detuvo con una expresión de sorpresa que no alcanzó a esconder.
+Se detuvo con una expresión de sorpresa que no alcanzó a esconder, pero no dijo nada. Su carácter reservado le impedía llenar con palabras lo que la escena ya decía por sí sola.
 
 Paz fue la primera en romper la quietud.
 
@@ -50,23 +50,21 @@ Paz contó que llevaba un par de años con un joven mecánico.
 
 José escuchó sin cambiar demasiado el rostro.
 
-Mauricio habló de sí mismo. José habló de Arquitectura, de planos, entregas y maquetas.
+Antonio habló poco. José habló de Arquitectura, de planos, entregas y maquetas.
 
 Todo parecía adulto.
 
 Todo parecía normal.
 
-Hasta que Mauricio quiso defender a su amigo hablando de la antigua relación de José.
+Hasta que Antonio quiso defender a su amigo hablando de la antigua relación de José.
 
 Y entonces dijo más de lo que debía.
 
 La frase cayó sobre la mesa como un objeto roto.
 
-José comprendió inmediatamente lo que estaba ocurriendo. Mauricio estaba hablando de Paz sin saber que ella estaba frente a él.
+José comprendió inmediatamente lo que estaba ocurriendo.
 
-Intentó detenerlo.
-
-—Ya, Mauricio... no es para tanto. Tampoco fue tan así.
+—Ya, Antonio... no es para tanto. Tampoco fue tan así.
 
 Pero el daño ya estaba hecho.
 
@@ -74,7 +72,7 @@ Paz no levantó la voz.
 
 Eso fue peor.
 
-Miró primero a Mauricio y después a José.
+Miró primero a Antonio y después a José.
 
 —¿Eso dijo José?
 
@@ -86,7 +84,7 @@ En ese momento, José entendió algo que durante años había evitado mirar de f
 
 La conversación continuó, pero ya no era la misma.
 
-Cuando cayó la noche, Mauricio se despidió.
+Cuando cayó la noche, Antonio se despidió.
 
 La casa tenía solo dos dormitorios. Paz, sostenida por una costumbre que pertenecía a otra época, le pidió a José que durmieran en la misma cama.
 
@@ -104,7 +102,7 @@ Paz habló primero.
 
 —Yo no soy puta...
 
-José sintió que la frase no hablaba solamente de lo que Mauricio había dicho. Hablaba también de todo lo que ella había cargado durante esos años: la necesidad de explicar sus decisiones, de justificar sus silencios, de demostrar que su vida no podía reducirse a la versión que otros habían construido de ella.
+José sintió que la frase no hablaba solamente de lo que Antonio había dicho. Hablaba también de todo lo que ella había cargado durante esos años: la necesidad de explicar sus decisiones, de justificar sus silencios, de demostrar que su vida no podía reducirse a la versión que otros habían construido de ella.
 
 —Disculpa... —murmuró José—. Yo nunca dije eso así.
 
@@ -142,20 +140,10 @@ José permaneció quieto unos segundos.
 
 No sabía si acababa de perderla nuevamente o si, por primera vez, había entendido que nunca se puede poseer aquello que alguna vez fue verdaderamente libre.
 
-### Nota editorial — versión de trabajo
+### Nota editorial — versión definitiva
 
-Este capítulo conserva el núcleo emocional del original, pero desplaza el centro desde la acusación hacia la **madurez moral de los personajes**.
+Este capítulo fija a **Antonio** como el mejor amigo y confidente de José. La antigua atribución de estas acciones y del comentario sobre Paula a Mauricio queda anulada.
 
-La escena de intimidad no se desarrolla físicamente. Se trabaja mediante silencio, memoria, distancia y consecuencias. La frase de Paz funciona como núcleo emocional del capítulo y como puente directo hacia el futuro Lado B.
+Paula conserva su vínculo oculto con Antonio dentro del canon general, mientras Mauricio queda como el pretendiente carismático de Paula.
 
-**Frases núcleo que deben permanecer como memoria del canon:**
-
-> “Nunca perdí contacto con la familia de José.”
-
-> “¿Eso dijo José?”
-
-> “Yo no soy puta...”
-
-> “Cuando quiero que estés... no estás.”
-
-La última frase deja abierta la verdadera pregunta del Lado B: **¿qué habría ocurrido si, en alguno de esos momentos, José y Paz hubieran sabido estar presentes el uno para el otro?**
+La escena mantiene la intimidad fuera de representación visual y la trabaja mediante silencio, memoria, distancia y consecuencias.
