@@ -4,10 +4,13 @@ const { createClient } = window.supabase
 const db = createClient(SUPABASE_URL, SUPABASE_KEY)
 
 const initialState = {
-  jose: { interesRomantico: 0, confianza: 0, temorAPerderPaz: 0, tendenciaAlSilencio: 0, iniciativa: 0 },
+  jose: { interesRomantico: 0, confianza: 0, temorAPerderPaz: 0, tendenciaAlSilencio: 0, iniciativa: 0, comodidadConPaula: 0, curiosidadPorPaula: 0, conflictoInterno: 0 },
   paz: { confianzaEnJose: 0, percepcionDelInteres: 0, disponibilidadEmocional: 0, iniciativa: 0 },
+  paula: { interesPorJose: 0, confianza: 0, lecturaEmocional: 0, cercania: 0 },
   relacion: { cercania: 0, tension: 0, comunicacion: 0, clandestinidad: 0, distancia: 0, confianza: 0 },
-  memoria: { numeroSieteDigitos: false, llamadas: 0, codigoSecreto: 0, heridas: 0 }
+  relacionPaula: { cercania: 0, confianza: 0, tension: 0, posibilidad: 0 },
+  memoria: { numeroSieteDigitos: false, llamadas: 0, codigoSecreto: 0, heridas: 0, consejoPaula: 0 },
+  meta: { steps: 0 }
 }
 
 let session = null
@@ -18,38 +21,22 @@ const $ = (id) => document.getElementById(id)
 
 function deepMerge(target, delta) {
   for (const [key, value] of Object.entries(delta || {})) {
-    if (value && typeof value === 'object' && !Array.isArray(value)) {
-      target[key] = deepMerge({ ...(target[key] || {}) }, value)
-    } else {
-      target[key] = typeof value === 'number' && typeof target[key] === 'number' ? target[key] + value : value
-    }
+    if (value && typeof value === 'object' && !Array.isArray(value)) target[key] = deepMerge({ ...(target[key] || {}) }, value)
+    else target[key] = typeof value === 'number' && typeof target[key] === 'number' ? target[key] + value : value
   }
   return target
 }
 
 async function loadDecisions() {
-  const { data, error } = await db
-    .from('plan_b_decisions')
-    .select('id,chapter,title,summary,question,sort_order')
-    .order('sort_order')
+  const { data, error } = await db.from('plan_b_decisions').select('id,chapter,title,summary,question,sort_order').order('sort_order')
   if (error) throw error
-
-  const { data: choices, error: choicesError } = await db
-    .from('plan_b_choices')
-    .select('id,decision_id,choice_code,choice_text,bridge_paragraph,state_delta,next_decision_id,next_passage')
-    .order('choice_code')
+  const { data: choices, error: choicesError } = await db.from('plan_b_choices').select('id,decision_id,choice_code,choice_text,bridge_paragraph,state_delta,next_decision_id,next_passage').order('choice_code')
   if (choicesError) throw choicesError
-
-  decisions = data.map(d => ({ ...d, choices: choices.filter(c => c.decision_id === d.id) }))
+  decisions = data.map(d => ({ ...d, choices: choices.filter(c => c.decision_id === d.id) })).filter(d => d.choices.length > 0)
 }
 
 async function createSession() {
-  const { data, error } = await db.from('plan_b_sessions').insert({
-    state: initialState,
-    current_decision_id: decisions[0].id,
-    current_passage: 'inicio',
-    status: 'active'
-  }).select().single()
+  const { data, error } = await db.from('plan_b_sessions').insert({ state: initialState, current_decision_id: decisions[0].id, current_passage: 'inicio', status: 'active' }).select().single()
   if (error) throw error
   session = data
   localStorage.setItem('plan_b_session_id', session.id)
@@ -68,15 +55,14 @@ async function restoreSession() {
 function renderDecision() {
   const d = decisions[current]
   if (!d) return renderClosure()
-
+  const step = session?.state?.meta?.steps ?? 0
   $('chapterLabel').textContent = `${d.chapter.replace('capitulo-', 'CAPÍTULO ')} · ${d.id}`
   $('decisionTitle').textContent = d.title
   $('summary').textContent = d.summary
   $('question').textContent = d.question
-  $('progressLabel').textContent = `Decisión ${current + 1} de ${decisions.length}`
-  $('progressBar').style.width = `${((current + 1) / decisions.length) * 100}%`
-  $('trajectoryCount').textContent = `${current} ${current === 1 ? 'decisión' : 'decisiones'}`
-
+  $('progressLabel').textContent = `Decisión ${step + 1}`
+  $('progressBar').style.width = `${Math.min(100, ((step + 1) / 9) * 100)}%`
+  $('trajectoryCount').textContent = `${step} ${step === 1 ? 'decisión' : 'decisiones'}`
   const choices = $('choices')
   choices.innerHTML = ''
   d.choices.forEach(choice => {
@@ -91,29 +77,17 @@ function renderDecision() {
 async function choose(choice) {
   const before = structuredClone(session.state)
   const after = deepMerge(structuredClone(session.state), choice.state_delta)
+  after.meta = after.meta || {}
+  after.meta.steps = (before.meta?.steps || 0) + 1
 
-  const { error: eventError } = await db.from('plan_b_decision_events').insert({
-    session_id: session.id,
-    decision_id: choice.decision_id,
-    choice_id: choice.id,
-    state_before: before,
-    state_after: after,
-    bridge_paragraph: choice.bridge_paragraph
-  })
+  const { error: eventError } = await db.from('plan_b_decision_events').insert({ session_id: session.id, decision_id: choice.decision_id, choice_id: choice.id, state_before: before, state_after: after, bridge_paragraph: choice.bridge_paragraph })
   if (eventError) return alert('No se pudo guardar esta decisión. Intenta nuevamente.')
 
   const next = decisions.findIndex(d => d.id === choice.next_decision_id)
   const isLast = next === -1
   const nextDecisionId = isLast ? null : choice.next_decision_id
 
-  const { data, error } = await db.from('plan_b_sessions').update({
-    state: after,
-    current_decision_id: nextDecisionId,
-    current_passage: choice.next_passage,
-    updated_at: new Date().toISOString(),
-    status: isLast ? 'completed' : 'active',
-    closure_code: isLast ? ({ A: 'mature_connection', B: 'distance', C: 'open_door' }[choice.choice_code] || 'open_door') : null
-  }).eq('id', session.id).select().single()
+  const { data, error } = await db.from('plan_b_sessions').update({ state: after, current_decision_id: nextDecisionId, current_passage: choice.next_passage, updated_at: new Date().toISOString(), status: isLast ? 'completed' : 'active', closure_code: isLast ? ({ A: 'mature_connection', B: 'distance', C: 'open_door' }[choice.choice_code] || 'open_door') : null }).eq('id', session.id).select().single()
   if (error) return alert('La decisión se guardó, pero no se pudo actualizar la trayectoria.')
 
   session = data
@@ -129,7 +103,7 @@ async function renderClosure() {
   if (error) return alert('No se pudo cargar el cierre.')
   $('closureTitle').textContent = data.title
   $('closureText').textContent = data.paragraph
-  $('closureCount').textContent = `${decisions.length} decisiones tomadas`
+  $('closureCount').textContent = `${session?.state?.meta?.steps ?? 0} decisiones tomadas`
   $('reader').classList.add('hidden')
   $('closure').classList.remove('hidden')
 }
