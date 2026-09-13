@@ -13,7 +13,6 @@
       <a class="brand" href="../index.html">EL LADO B</a>
       <span class="mode">PLAN B · RECONSTRUCCIÓN</span>
     </header>
-
     <section id="intro" class="intro panel">
       <p class="eyebrow">EL LADO B</p>
       <h1>Lo que pudo haber ocurrido.</h1>
@@ -21,25 +20,21 @@
       <p class="note">No hay respuestas correctas. Cada elección modifica el desarrollo que leerás después.</p>
       <button id="startBtn" class="primary">Comenzar Plan B</button>
     </section>
-
     <section id="reader" class="reader hidden">
       <div class="progress-row">
         <span id="progressLabel">Decisión 1 de 9</span>
         <div class="progress"><span id="progressBar"></span></div>
       </div>
-
       <article class="narrative panel">
         <p id="chapterLabel" class="eyebrow"></p>
         <h2 id="decisionTitle"></h2>
         <p id="summary" class="summary"></p>
       </article>
-
-      <section class="choice-panel panel">
+      <section id="choice-panel" class="choice-panel panel">
         <p class="eyebrow">PUNTO DE QUIEBRE</p>
         <h3 id="question"></h3>
         <div id="choices" class="choices"></div>
       </section>
-
       <article id="development" class="development panel hidden">
         <p class="eyebrow">NUEVO DESARROLLO</p>
         <p id="bridge"></p>
@@ -50,7 +45,6 @@
         <button id="continueBtn" class="secondary">Continuar</button>
       </article>
     </section>
-
     <section id="closure" class="closure panel hidden">
       <p class="eyebrow">CIERRE DEL LADO B</p>
       <h2 id="closureTitle"></h2>
@@ -61,7 +55,6 @@
       </div>
       <button id="restartBtn" class="secondary">Comenzar otra trayectoria</button>
     </section>
-
     <footer>El Lado A cuenta lo que ocurrió. El Lado B reconstruye lo que pudo haber ocurrido.</footer>
   </main>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
