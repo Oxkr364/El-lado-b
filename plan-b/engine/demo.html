@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>El Lado B — Motor narrativo</title>
+  <style>
+    body{font-family:Georgia,serif;background:#f3eee7;color:#27222a;margin:0;padding:32px}
+    main{max-width:760px;margin:auto;background:#fffaf4;padding:32px;border:1px solid #ddd0c5;box-shadow:0 12px 35px #00000012}
+    .eyebrow{font:12px Arial,sans-serif;letter-spacing:.16em;text-transform:uppercase;color:#8b315f}
+    h1{font-size:32px;margin:8px 0 20px}.chapter{font-size:13px;color:#777;font-family:Arial,sans-serif}
+    .summary{font-size:19px;line-height:1.7}.question{font-size:23px;line-height:1.4;margin-top:30px}
+    button{display:block;width:100%;text-align:left;margin:12px 0;padding:16px;border:1px solid #cdbbc5;background:#fff;cursor:pointer;font:16px Georgia,serif}
+    button:hover{background:#f6eaf0}.bridge{border-left:3px solid #9b3c69;padding:14px 18px;margin:24px 0;line-height:1.7}
+    .meta{font:12px Arial,sans-serif;color:#777;margin-top:24px}
+    .hidden{display:none}
+  </style>
+</head>
+<body>
+<main>
+  <div class="eyebrow">El Lado B · Prototipo del motor</div>
+  <h1 id="title">Cargando…</h1>
+  <div class="chapter" id="chapter"></div>
+  <p class="summary" id="summary"></p>
+  <div id="questionBox">
+    <p class="question" id="question"></p>
+    <div id="choices"></div>
+  </div>
+  <div id="result" class="hidden">
+    <div class="bridge" id="bridge"></div>
+    <div class="meta" id="meta"></div>
+    <button id="next">Continuar</button>
+  </div>
+</main>
+<script type="module">
+import { PLAN_B_DECISIONS, PLAN_B_CLOSURE } from './plan-b-data.js';
+import { createSession, chooseDecision, recordDecision, buildClosure } from './engine.js';
+
+let session = createSession();
+let index = 0;
+
+const $ = id => document.getElementById(id);
+
+function renderDecision(){
+  const decision = PLAN_B_DECISIONS[index];
+  if(!decision){ return renderClosure(); }
+  $('title').textContent = decision.title;
+  $('chapter').textContent = `Plan B · ${decision.chapter}`;
+  $('summary').textContent = decision.summary;
+  $('question').textContent = decision.question;
+  $('choices').innerHTML = '';
+  $('result').classList.add('hidden');
+  $('questionBox').classList.remove('hidden');
+
+  decision.choices.forEach(choice => {
+    const button = document.createElement('button');
+    button.textContent = choice.text;
+    button.onclick = () => selectChoice(decision, choice.id);
+    $('choices').appendChild(button);
+  });
+}
+
+function selectChoice(decision, choiceId){
+  const result = chooseDecision(session.state, decision, choiceId);
+  session = recordDecision(session, decision.id, choiceId, result);
+  $('questionBox').classList.add('hidden');
+  $('bridge').textContent = result.bridgeFragment;
+  $('meta').textContent = `Decisiones acumuladas: ${session.decisions.length}`;
+  $('result').classList.remove('hidden');
+}
+
+$('next').onclick = () => { index += 1; renderDecision(); };
+
+function renderClosure(){
+  const closure = buildClosure(session, PLAN_B_CLOSURE);
+  $('title').textContent = closure.label;
+  $('chapter').textContent = 'Esta es la historia que construiste';
+  $('summary').textContent = '';
+  $('questionBox').classList.add('hidden');
+  $('bridge').textContent = closure.literary_text;
+  $('meta').textContent = `${session.decisions.length} decisiones acumuladas.`;
+  $('result').classList.remove('hidden');
+  $('next').classList.add('hidden');
+}
+
+renderDecision();
+</script>
+</body>
+</html>
