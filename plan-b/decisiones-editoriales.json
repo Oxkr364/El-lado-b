@@ -1,0 +1,283 @@
+{
+  "version": "1.0",
+  "rol_editorial": "Editor narrativo y arquitecto de continuidad de Plan B",
+  "principio": "El Lado A permanece intacto. Plan B deriva una trayectoria narrativa a partir de decisiones del lector.",
+  "criterio_editorial": {
+    "seleccion": "Solo se interviene en quiebres donde una decisión plausible puede modificar conducta, vínculo, memoria o interpretación posterior.",
+    "cantidad": "Se establecen 9 decisiones principales, suficientes para crear una trayectoria reconocible sin convertir la novela en un árbol inmanejable.",
+    "tono": "Las preguntas deben sentirse como parte de la historia, no como preguntas de videojuego.",
+    "consecuencia": "Cada alternativa tiene una consecuencia literaria y una semilla para capítulos posteriores.",
+    "canon": "Ninguna decisión modifica los archivos de historia/.",
+    "intimidad": "Las decisiones sobre intimidad se mantienen literarias, sugeridas y nunca explícitas ni visuales."
+  },
+  "decisiones": [
+    {
+      "id": "Q1",
+      "chapter": 1,
+      "title": "La primera mirada",
+      "quiebre": "José descubre que su atención hacia Paz ya no se parece a la curiosidad habitual entre amigos.",
+      "question": "Cuando te das cuenta de que estás mirando a alguien de una manera distinta, ¿qué haces con ese descubrimiento?",
+      "choices": [
+        {
+          "id": "A",
+          "text": "Lo dejo pasar. No quiero cambiar lo que ya existe.",
+          "state_delta": {"jose.interes_romantico": 1, "jose.tendencia_al_silencio": 2, "relacion.cercania": 1},
+          "bridge_fragment": "José decidió no hacer nada con aquello. No porque no importara, sino porque todavía no sabía qué nombre darle. Prefirió conservar la tranquilidad del grupo y dejar que la sensación encontrara sola su lugar. Desde entonces, comenzó a mirar a Paz un segundo más de lo necesario, pero siempre cuando ella no podía verlo.",
+          "future_seed": "El interés permanece oculto y aumenta el peso de las miradas posteriores."
+        },
+        {
+          "id": "B",
+          "text": "Me quedo observando lo que siento, aunque no diga nada.",
+          "state_delta": {"jose.interes_romantico": 2, "jose.autoconciencia": 2, "relacion.tension": 1},
+          "bridge_fragment": "José no buscó acercarse. Hizo algo más silencioso: comenzó a observarse a sí mismo. Descubrió que ciertas cosas de Paz le importaban más de lo que quería admitir. La amistad seguía intacta, pero ahora tenía una pregunta escondida dentro.",
+          "future_seed": "José reconoce antes su propio interés; las decisiones posteriores pueden hacerlo más consciente o más prudente."
+        },
+        {
+          "id": "C",
+          "text": "Busco una pequeña forma de acercarme a ella.",
+          "state_delta": {"jose.interes_romantico": 2, "jose.iniciativa": 2, "relacion.cercania": 2},
+          "bridge_fragment": "José comenzó con algo mínimo: una conversación que no necesitaba existir, una pregunta al pasar, una forma distinta de quedarse cerca. Nada que pudiera llamarse declaración. Pero Paz empezó a notar que, entre todos, José encontraba razones especiales para acercarse a ella.",
+          "future_seed": "Paz percibe antes el interés de José y eso puede cambiar el significado de sus futuras preguntas y silencios."
+        }
+      ]
+    },
+    {
+      "id": "Q2",
+      "chapter": 2,
+      "title": "¿Quién es ella?",
+      "quiebre": "Paz pregunta por Nadia después de que José conversa con ella y aparece una señal de celos que ninguno de los dos sabe todavía interpretar.",
+      "question": "Cuando alguien que te importa pregunta por otra persona con un tono que parece esconder algo, ¿cómo respondes?",
+      "choices": [
+        {
+          "id": "A",
+          "text": "Le quito importancia y dejo la pregunta pasar.",
+          "state_delta": {"jose.tendencia_al_silencio": 2, "paz.percepcion_del_interes": 1},
+          "bridge_fragment": "José sonrió y dejó que la pregunta se perdiera entre las conversaciones. Paz no insistió. Pero ambos se quedaron con la sensación de que, por primera vez, habían rozado una pregunta que ninguno se atrevía a formular completa.",
+          "future_seed": "El silencio se convierte en parte del idioma secreto."
+        },
+        {
+          "id": "B",
+          "text": "Le pregunto por qué le interesa tanto saberlo.",
+          "state_delta": {"jose.iniciativa": 2, "paz.percepcion_del_interes": 2, "relacion.tension": 2},
+          "bridge_fragment": "José no respondió inmediatamente. La miró y le devolvió la pregunta. Paz quedó en silencio apenas un instante, el suficiente para comprender que ambos estaban hablando de algo que no era Nadia.",
+          "future_seed": "Paz empieza a reconocer que José también puede estar leyendo sus señales."
+        },
+        {
+          "id": "C",
+          "text": "Le digo que me molestaría lo mismo si fuera al revés.",
+          "state_delta": {"jose.iniciativa": 3, "paz.percepcion_del_interes": 3, "relacion.cercania": 2},
+          "bridge_fragment": "José decidió arriesgar una frase que podía parecer una broma, pero que no lo era del todo. Paz entendió. No hubo confesión. Solo una sonrisa distinta, más lenta, como si ambos acabaran de descubrir que el idioma que compartían podía decir un poco más de lo que creían.",
+          "future_seed": "La complicidad romántica queda más explícita antes del quiebre de 1999."
+        }
+      ]
+    },
+    {
+      "id": "Q3",
+      "chapter": 3,
+      "title": "Ven a dormir conmigo",
+      "quiebre": "Después del cumpleaños de Paz, ella invita a José a dormir con ella y la relación cruza el límite que hasta entonces parecía contenerlos.",
+      "question": "Cuando una amistad deja de sentirse como amistad, ¿proteges el límite conocido o aceptas que algo acaba de cambiar?",
+      "choices": [
+        {
+          "id": "A",
+          "text": "Mantengo el límite y prefiero no cambiar lo que tenemos.",
+          "state_delta": {"jose.tendencia_al_silencio": 2, "relacion.cercania": 1, "relacion.tension": 2},
+          "bridge_fragment": "José entendió la invitación y, precisamente por entenderla, tuvo miedo de lo que podía significar. Esa noche eligió el límite. No hubo reproche. Solo una distancia nueva, pequeña y silenciosa, instalada entre ambos. Paz no preguntó por qué.",
+          "future_seed": "La tensión queda sin resolución y puede reaparecer en septiembre de 1999."
+        },
+        {
+          "id": "B",
+          "text": "Acepto el cambio y dejo que la noche diga lo que nosotros no hemos dicho.",
+          "state_delta": {"jose.iniciativa": 3, "paz.disponibilidad_emocional": 3, "relacion.cercania": 4, "relacion.intimidad": 2},
+          "bridge_fragment": "José aceptó. Después de eso, las palabras dejaron de ser necesarias por un momento. La noche guardó aquello que ninguno de los dos sabía explicar todavía. A la mañana siguiente, el mundo seguía exactamente donde lo habían dejado, pero ellos ya no eran exactamente los mismos.",
+          "future_seed": "La intimidad temprana vuelve más profundo el conflicto cuando Paz comienza a salir con otro hombre."
+        },
+        {
+          "id": "C",
+          "text": "Acepto acercarme, pero necesito hablar con Paz antes de seguir.",
+          "state_delta": {"jose.iniciativa": 3, "paz.disponibilidad_emocional": 2, "relacion.comunicacion": 3, "relacion.cercania": 3},
+          "bridge_fragment": "José se acercó, pero antes de cruzar el límite quiso saber qué significaba para ella. Hablaron en voz baja, sin promesas. Aquella conversación no resolvió el futuro, pero hizo algo importante: convirtió lo que había entre ellos en algo que ambos podían reconocer.",
+          "future_seed": "La relación parte con mayor comunicación y las decisiones futuras tienen menos espacio para el malentendido."
+        }
+      ]
+    },
+    {
+      "id": "Q4",
+      "chapter": 4,
+      "title": "La grieta",
+      "quiebre": "Paz cuenta frente al grupo que está conociendo a otro hombre. José debe sostener la máscara de amigo mientras la noticia lo afecta.",
+      "question": "Cuando la persona que te importa está construyendo una vida que no te incluye, ¿qué estás dispuesto a arriesgar para decir lo que sientes?",
+      "choices": [
+        {
+          "id": "A",
+          "text": "Guardo silencio para proteger la amistad y la historia que tenemos.",
+          "state_delta": {"jose.tendencia_al_silencio": 3, "relacion.tension": 3, "memoria.numero_fijo": 1},
+          "bridge_fragment": "José sostuvo la sonrisa hasta que la reunión terminó. Frente a los demás no tenía derecho a reclamar nada. Más tarde, cuando quedaron solos, Paz le entregó el número de su casa y le pidió que no se perdieran. José guardó el papel como quien guarda una puerta que todavía no sabe si se atreverá a abrir.",
+          "future_seed": "El papel de siete dígitos se convierte en el principal canal del vínculo."
+        },
+        {
+          "id": "B",
+          "text": "Le digo a Paz que lo que tenemos también significa algo para mí.",
+          "state_delta": {"jose.iniciativa": 3, "relacion.comunicacion": 3, "relacion.tension": 4, "paz.percepcion_del_interes": 3},
+          "bridge_fragment": "Lejos del grupo, José dejó caer por fin una parte de la máscara. No le pidió que eligiera. Solo le dijo que aquello que habían vivido no era indiferente para él. Paz escuchó sin responder inmediatamente. La distancia no desapareció, pero dejó de ser completamente muda.",
+          "future_seed": "Las conversaciones posteriores pueden ser más directas y cambiar el tono de la reunión de 2000."
+        },
+        {
+          "id": "C",
+          "text": "Me alejo. Si no puedo ocupar un lugar, prefiero no seguir esperando.",
+          "state_delta": {"jose.autoproteccion": 3, "relacion.cercania": -2, "relacion.tension": 2},
+          "bridge_fragment": "José entendió que también podía perderse intentando conservar algo. Esa noche se despidió sin buscar el minuto a solas que otras veces los había salvado. La ausencia de esa conversación dejó un vacío distinto: por primera vez, la distancia no era solo una circunstancia, sino una decisión.",
+          "future_seed": "El reencuentro de 2000 será más frío y el papel de siete dígitos puede adquirir un significado distinto."
+        }
+      ]
+    },
+    {
+      "id": "Q5",
+      "chapter": 4,
+      "title": "Los siete dígitos",
+      "quiebre": "Paz entrega a José el número de red fija y le pide que no pierdan la comunicación.",
+      "question": "Tienes en la mano una forma de volver a escuchar su voz. ¿Qué haces con ella?",
+      "choices": [
+        {
+          "id": "A",
+          "text": "Lo guardo. Si ella quiere hablar, sabrá que puede hacerlo.",
+          "state_delta": {"memoria.numero_fijo": 2, "jose.tendencia_al_silencio": 2},
+          "bridge_fragment": "José dobló el papel y lo guardó en la billetera. No llamó. Durante semanas, el número viajó con él sin producir un solo sonido. Pero cada vez que abría la billetera recordaba que Paz había decidido dejarle una puerta abierta.",
+          "future_seed": "El papel será encontrado y activará el reencuentro de 2001."
+        },
+        {
+          "id": "B",
+          "text": "La llamo. No quiero que la comunicación dependa solo de esperar.",
+          "state_delta": {"jose.iniciativa": 3, "relacion.comunicacion": 3, "memoria.numero_fijo": 2},
+          "bridge_fragment": "José no esperó demasiado. La primera llamada fue breve, casi prudente. Pero después de colgar comprendió que siete dígitos podían sostener algo que parecía estar perdiéndose. La voz de Paz volvió a existir al otro lado de la línea.",
+          "future_seed": "Las llamadas pueden mantener una relación más activa y modificar el grado de distancia en 2000."
+        },
+        {
+          "id": "C",
+          "text": "Lo guardo, pero espero a que sea Paz quien decida el momento.",
+          "state_delta": {"memoria.numero_fijo": 2, "paz.agencia": 2, "jose.tendencia_al_silencio": 1},
+          "bridge_fragment": "José guardó el papel sin usarlo. No era indiferencia. Era una forma de respetar la vida que Paz estaba intentando construir. El número quedó entre recibos y papeles pequeños, esperando que alguna noche la historia decidiera volver a tocar la puerta.",
+          "future_seed": "Cuando José vuelva a encontrar el papel, la llamada tendrá mayor peso emocional."
+        }
+      ]
+    },
+    {
+      "id": "Q6",
+      "chapter": 5,
+      "title": "La geometría del desvelo",
+      "quiebre": "En el reencuentro de 2000, José y Paz recuperan su idioma secreto a través de miradas, silencios y referencias que solo ellos entienden.",
+      "question": "Cuando todavía existe algo entre dos personas, pero la vida ya tomó caminos distintos, ¿hablas en clave o dices algo que pueda cambiarlo todo?",
+      "choices": [
+        {
+          "id": "A",
+          "text": "Mantengo el idioma secreto.",
+          "state_delta": {"relacion.tension": 2, "relacion.comunicacion": 1, "memoria.objeto_simbolico": 2},
+          "bridge_fragment": "José volvió a hablarle en el idioma que ambos conocían: una frase que parecía casual, una mirada sostenida apenas un segundo más, una referencia que nadie más podía descifrar. Paz respondió de la misma manera. No necesitaban explicar lo que todavía existía.",
+          "future_seed": "La relación conserva misterio y el papel de siete dígitos mantiene su poder simbólico."
+        },
+        {
+          "id": "B",
+          "text": "Digo algo más claro, aunque pueda romper el equilibrio.",
+          "state_delta": {"jose.iniciativa": 3, "relacion.comunicacion": 3, "relacion.tension": 3, "paz.percepcion_del_interes": 2},
+          "bridge_fragment": "Esta vez José dejó que una frase cruzara la frontera de las insinuaciones. No fue una declaración. Fue suficiente para que Paz entendiera que la memoria no era unilateral. El equilibrio de la tarde cambió apenas, pero cambió.",
+          "future_seed": "El encuentro de 2001 puede partir desde una relación más explícita."
+        }
+      ]
+    },
+    {
+      "id": "Q7",
+      "chapter": 6,
+      "title": "La llamada de 2001",
+      "quiebre": "José encuentra el papel con los siete dígitos, llama a la casa de Paz y ambos retoman una rutina que parecía perdida.",
+      "question": "Cuando vuelves a abrir una puerta que la vida había dejado entreabierta, ¿qué estás buscando realmente?",
+      "choices": [
+        {
+          "id": "A",
+          "text": "Quiero recuperar lo que tuvimos.",
+          "state_delta": {"jose.expectativa": 3, "relacion.cercania": 3, "relacion.tension": 2},
+          "bridge_fragment": "José llegó al encuentro con una esperanza que no quiso confesar ni siquiera a sí mismo. La mesa del restaurante chino, las conversaciones y la rutina recuperada parecían devolverles algo conocido. Pero recuperar una memoria no significa recuperar el tiempo en que ocurrió.",
+          "future_seed": "Las decisiones posteriores tendrán que enfrentar la distancia entre deseo y realidad."
+        },
+        {
+          "id": "B",
+          "text": "Quiero entender qué quedó entre nosotros.",
+          "state_delta": {"jose.autoconciencia": 3, "relacion.comunicacion": 3, "relacion.cercania": 2},
+          "bridge_fragment": "José no buscó una respuesta inmediata. Quería entender por qué aquella relación seguía apareciendo después de tantos meses. En el restaurante, mientras la conversación recuperaba su ritmo, comprendió que algunas historias no piden volver: piden ser comprendidas.",
+          "future_seed": "José llega a las preguntas morales de 2001 con mayor madurez y menos posesión."
+        },
+        {
+          "id": "C",
+          "text": "Solo quiero verla. Lo demás tendrá que ocurrir por sí solo.",
+          "state_delta": {"jose.expectativa": 1, "relacion.cercania": 2, "jose.tendencia_al_silencio": 1},
+          "bridge_fragment": "José decidió no pedirle al encuentro más de lo que podía entregar. Quería verla, escucharla y saber cómo estaba. Lo demás podía esperar. Esa prudencia hizo que la tarde fuera más liviana, pero también dejó intactas algunas preguntas.",
+          "future_seed": "El conflicto posterior dependerá menos de la expectativa y más de lo que ocurra en la convivencia."
+        }
+      ]
+    },
+    {
+      "id": "Q8",
+      "chapter": 6,
+      "title": "Padre no es el que engendra",
+      "quiebre": "Paz plantea la posibilidad de un embarazo y pregunta qué haría José, incluso si el hijo no fuera suyo.",
+      "question": "Cuando una persona que quieres te plantea una responsabilidad que puede cambiarte la vida, ¿respondes desde el miedo, desde el derecho o desde el cuidado?",
+      "choices": [
+        {
+          "id": "A",
+          "text": "Respondo desde la responsabilidad: si hay un niño, lo importante es cuidarlo.",
+          "state_delta": {"jose.madurez": 3, "relacion.confianza": 3, "relacion.responsabilidad": 3},
+          "bridge_fragment": "José no preguntó primero de quién sería el hijo. Pensó en lo que significaba hacerse cargo. Su respuesta no resolvía la vida de nadie, pero mostraba algo que había cambiado en él: ya no pensaba el amor solo como deseo, sino también como responsabilidad.",
+          "future_seed": "La frase sobre quién cría y quién engendra se convierte en eje moral del Plan B."
+        },
+        {
+          "id": "B",
+          "text": "Pregunto primero qué significa esto para Paz y qué necesita de mí.",
+          "state_delta": {"jose.madurez": 3, "relacion.comunicacion": 4, "paz.confianza_en_jose": 3},
+          "bridge_fragment": "José quiso entender antes de responder. Le preguntó a Paz qué estaba sintiendo, qué necesitaba y qué esperaba de él. La conversación dejó de ser hipotética y se convirtió en una muestra de cuidado. Paz descubrió que podía hablar con José sin tener que protegerse de inmediato.",
+          "future_seed": "La confianza de Paz aumenta y modifica la lectura de la crisis familiar de 2002."
+        },
+        {
+          "id": "C",
+          "text": "Me asusto y reconozco que no sé si podría asumir algo así.",
+          "state_delta": {"jose.miedo": 3, "relacion.tension": 3, "jose.madurez": 1},
+          "bridge_fragment": "José no quiso fingir una seguridad que no tenía. Reconoció el miedo. La respuesta no fue heroica, pero sí honesta. Paz quedó pensando en aquello: a veces la verdad de una persona no está en lo que promete, sino en lo que es capaz de admitir.",
+          "future_seed": "El 2002 puede convertirse en una prueba más dura de la capacidad de José para estar presente."
+        }
+      ]
+    },
+    {
+      "id": "Q9",
+      "chapter": 7,
+      "title": "Cuando quiero que estés",
+      "quiebre": "En la casa familiar, después del comentario de Mauricio y del pedido de disculpas de José, Paz expresa la herida central: cuando necesita que él esté, él no está.",
+      "question": "Cuando alguien que amas te dice que tu ausencia también fue una decisión, ¿intentas defenderte o aceptas escuchar el daño que causaste?",
+      "choices": [
+        {
+          "id": "A",
+          "text": "Escucho. No intento justificarme.",
+          "state_delta": {"jose.madurez": 4, "relacion.comunicacion": 3, "relacion.confianza": 2},
+          "bridge_fragment": "José pudo haber explicado cada ausencia. En cambio, escuchó. Entendió que tener razones no borraba las consecuencias. Paz no necesitaba una defensa; necesitaba saber si él podía reconocer aquello que había dolido. Esa noche no repararon la historia, pero dejaron de mentirse sobre ella.",
+          "future_seed": "El cierre de 2006 puede ser más sereno y consciente."
+        },
+        {
+          "id": "B",
+          "text": "Le digo que yo también sufrí y que no todo dependía de mí.",
+          "state_delta": {"jose.autodefensa": 3, "relacion.tension": 4, "relacion.comunicacion": 1},
+          "bridge_fragment": "José respondió desde su propia herida. También había sufrido, también había esperado, también había perdido cosas. Paz lo escuchó, pero la frase no resolvió la suya. Esa noche ambos comprendieron que podían tener razón y seguir sin encontrarse.",
+          "future_seed": "El reencuentro de 2006 conserva mayor distancia emocional."
+        },
+        {
+          "id": "C",
+          "text": "Intento reparar de inmediato, aunque no sé si todavía tengo derecho.",
+          "state_delta": {"jose.iniciativa": 3, "relacion.responsabilidad": 3, "relacion.tension": 2},
+          "bridge_fragment": "José quiso hacer algo concreto. No prometió que todo volvería a ser como antes. Solo reconoció que había llegado tarde demasiadas veces y preguntó qué podía hacer ahora. Paz no respondió inmediatamente. Pero la pregunta quedó entre ambos como una posibilidad que antes no existía.",
+          "future_seed": "La reconstrucción de 2006 puede incluir una reparación más activa sin alterar el cierre esencial del canon."
+        }
+      ]
+    }
+  ],
+  "closure": {
+    "principle": "El cierre de Plan B no reemplaza el cierre del Lado A.",
+    "text": "Esta es la historia que construiste con tus decisiones. No reemplaza lo que ocurrió. Es la memoria de aquello que pudo haber ocurrido si, en algunos momentos, hubieras elegido distinto.",
+    "comparison": "El lector puede volver a mirar el Lado A y comparar qué cambió, qué permaneció y qué decisiones terminaron dando otro significado a los mismos recuerdos."
+  }
+}
