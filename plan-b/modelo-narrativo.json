@@ -1,0 +1,85 @@
+{
+  "version": "0.1",
+  "canon": {
+    "source": "historia/",
+    "chapters": [
+      "capitulo-01",
+      "capitulo-02",
+      "capitulo-03",
+      "capitulo-04",
+      "capitulo-05",
+      "capitulo-06",
+      "capitulo-07",
+      "capitulo-08"
+    ]
+  },
+  "rules": {
+    "preserve_character_identity": true,
+    "preserve_period_context": true,
+    "preserve_canon_unless_causally_affected": true,
+    "rewrite_only_affected_passages": true,
+    "store_states_not_full_branch_novels": true,
+    "choices_must_have_literary_consequence": true,
+    "intimacy_is_textual_only": true
+  },
+  "reader_session": {
+    "session_id": null,
+    "decisions": [],
+    "current_chapter": null,
+    "current_passage": null,
+    "state": {
+      "jose": {},
+      "paz": {},
+      "relacion": {},
+      "grupo": {},
+      "memoria": {}
+    }
+  },
+  "decision": {
+    "id": "QX",
+    "chapter": "",
+    "passage": "",
+    "trigger": "",
+    "question": "",
+    "choices": [
+      {
+        "id": "A",
+        "text": "",
+        "state_delta": {},
+        "bridge_fragment": "",
+        "affected_passages": [],
+        "next_decision": null
+      },
+      {
+        "id": "B",
+        "text": "",
+        "state_delta": {},
+        "bridge_fragment": "",
+        "affected_passages": [],
+        "next_decision": null
+      }
+    ]
+  },
+  "narrative_fragment": {
+    "id": "fragment-X",
+    "canonical_basis": "",
+    "reader_consequence": "",
+    "literary_text": "",
+    "seed_for_future": ""
+  },
+  "narrative_state": {
+    "id": "state-X",
+    "label": "",
+    "jose": {},
+    "paz": {},
+    "relacion": {},
+    "group": {},
+    "memory_objects": []
+  },
+  "closure": {
+    "id": "closure-X",
+    "label": "",
+    "conditions": [],
+    "literary_text": ""
+  }
+}
