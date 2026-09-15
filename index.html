@@ -2,8 +2,10 @@
 <html lang="es">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>El Lado B — Agenda de recuerdos</title>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0b0a10">
+<title>El Lado B — Una historia que recuerda</title>
+<meta name="description" content="El Lado B: una historia sobre lo que ocurrió y todo lo que pudo haber ocurrido.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;600&family=Libre+Baskerville:wght@400;700&family=Special+Elite&display=swap" rel="stylesheet">
@@ -11,8 +13,8 @@
 </head>
 <body>
 <section class="cover" id="cover">
-  <div class="rain"></div>
-  <div class="city"></div>
+  <div class="rain" aria-hidden="true"></div>
+  <div class="city" aria-hidden="true"></div>
   <div class="queen" aria-hidden="true">♛</div>
   <div class="cover-copy">
     <div class="year">SANTIAGO · 1998</div>
@@ -24,7 +26,7 @@
 
 <main class="agenda" id="agenda" aria-hidden="true">
   <header class="agenda-head">
-    <span>EL LADO B</span><span>AGENDA · 1998</span>
+    <span>EL LADO B</span><span>ARCHIVO DE MEMORIA · 01</span>
   </header>
   <div class="book">
     <article class="page text-page">
@@ -36,7 +38,8 @@
       <p>José entró sin buscar nada en particular. Entonces la vio.</p>
       <p>Paz estaba sentada sobre una colchoneta, con un libro abierto entre las manos. No hizo nada extraordinario. No necesitó hacerlo.</p>
       <p>José la miró como quien encuentra un tesoro sin saber que estaba buscando uno.</p>
-      <div class="margin-note">“Hay momentos que parecen pequeños hasta que uno los recuerda.”</div>
+      <div class="margin-note">Hay momentos que parecen pequeños hasta que uno los recuerda.</div>
+      <div class="scribble">¿Qué habría pasado si José no la miraba?</div>
     </article>
 
     <aside class="memory-page">
@@ -45,13 +48,15 @@
         <span class="tape"></span>
       </div>
       <div class="paper-photo jose">
-        <div class="photo-placeholder">JOSÉ<br><small>1998 · EL PRIMER ENCUENTRO</small></div>
+        <div class="photo-placeholder">JOSÉ<br><small>1998 · PRIMERA MIRADA</small></div>
         <span class="tape"></span>
       </div>
       <div class="object-note">RECUERDO · 01<br><strong>El gimnasio</strong><br><small>La primera mirada todavía no sabía que sería importante.</small></div>
+      <div class="date-stamp">30 DIC<br>1998</div>
     </aside>
   </div>
-  <nav class="pager"><button id="prev">←</button><span>HOJA 01 · 1998</span><button id="next">→</button></nav>
+  <nav class="pager"><button id="prev" aria-label="Volver arriba">←</button><span>HOJA 01</span><button id="next" aria-label="Continuar">→</button></nav>
+  <a class="plan-link" href="plan-b/index.html">ENTRAR A PLAN B · RECONSTRUIR LA HISTORIA</a>
 </main>
 <script src="script.js"></script>
 </body>
