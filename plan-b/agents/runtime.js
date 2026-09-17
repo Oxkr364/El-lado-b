@@ -44,14 +44,17 @@ export function runStoryAgents(input) {
   const story = normalizeText(input.story);
   const author = normalizeText(input.author) || 'Autor anónimo';
   const images = Array.isArray(input.images) ? input.images : [];
-  const character = {
-    name: normalizeText(input.character?.name),
-    description: normalizeText(input.character?.description),
-    portraitSource: ['none', 'upload', 'ai'].includes(input.character?.portraitSource) ? input.character.portraitSource : 'none',
-    portraitName: normalizeText(input.character?.portraitName),
-    portraitType: normalizeText(input.character?.portraitType),
-    portraitSize: Number(input.character?.portraitSize ?? 0)
-  };
+  const sourceCharacters = Array.isArray(input.characters) ? input.characters : (input.character ? [input.character] : []);
+  const characters = sourceCharacters.slice(0, 20).map((item, index) => ({
+    name: normalizeText(item?.name),
+    description: normalizeText(item?.description),
+    role: index === 0 ? 'protagonist' : (['coprotagonist', 'secondary'].includes(item?.role) ? item.role : 'secondary'),
+    relationship: normalizeText(item?.relationship),
+    portraitSource: ['none', 'upload', 'ai'].includes(item?.portraitSource) ? item.portraitSource : 'none',
+    portraitName: normalizeText(item?.portraitName),
+    portraitType: normalizeText(item?.portraitType),
+    portraitSize: Number(item?.portraitSize ?? 0)
+  }));
 
   log.push(event('canon', 'ok', 'canon_protegido',
     'La historia recibida se crea como una obra independiente y no modifica el canon de El Lado B.',
@@ -60,8 +63,11 @@ export function runStoryAgents(input) {
   const editorialErrors = [];
   if (title.length < 3) editorialErrors.push('El título debe tener al menos 3 caracteres.');
   if (story.length < 80) editorialErrors.push('El relato debe tener al menos 80 caracteres.');
-  if (character.name.length < 2) editorialErrors.push('El personaje necesita un nombre.');
-  if (character.description.length < 20) editorialErrors.push('Describe al personaje con al menos 20 caracteres.');
+  if (!characters.length) editorialErrors.push('Agrega al menos un personaje protagonista.');
+  characters.forEach((character, index) => {
+    if (character.name.length < 2) editorialErrors.push(`El personaje ${index + 1} necesita un nombre.`);
+    if (character.description.length < 20) editorialErrors.push(`Describe al personaje ${index + 1} con al menos 20 caracteres.`);
+  });
   if (editorialErrors.length) return failure(log, 'editor', 'material_incompleto', 'Falta material para construir una historia.', editorialErrors);
 
   const rawSections = splitStory(story);
@@ -86,10 +92,13 @@ export function runStoryAgents(input) {
   if (images.length > MAX_FREE_IMAGES) archiveErrors.push(`El plan gratuito admite hasta ${MAX_FREE_IMAGES} imágenes.`);
   const invalidImage = images.find(image => !String(image.type ?? '').startsWith('image/'));
   if (invalidImage) archiveErrors.push(`“${invalidImage.name}” no es una imagen válida.`);
-  if (character.portraitSource === 'upload' && !character.portraitName) archiveErrors.push('Selecciona la fotografía del personaje o elige otra opción.');
-  if (character.portraitSource === 'upload' && !['image/jpeg', 'image/png', 'image/webp'].includes(character.portraitType)) archiveErrors.push('El retrato debe ser JPG, PNG o WebP.');
-  if (character.portraitSource === 'upload' && character.portraitSize > 10485760) archiveErrors.push('El retrato no puede superar 10 MB.');
-  if (!input.consent && (images.length || character.portraitSource === 'upload')) archiveErrors.push('Debes confirmar que puedes utilizar las fotografías.');
+  characters.forEach((character, index) => {
+    const label = character.name || `personaje ${index + 1}`;
+    if (character.portraitSource === 'upload' && !character.portraitName) archiveErrors.push(`Selecciona la fotografía de ${label} o elige otra opción.`);
+    if (character.portraitSource === 'upload' && !['image/jpeg', 'image/png', 'image/webp'].includes(character.portraitType)) archiveErrors.push(`El retrato de ${label} debe ser JPG, PNG o WebP.`);
+    if (character.portraitSource === 'upload' && character.portraitSize > 10485760) archiveErrors.push(`El retrato de ${label} no puede superar 10 MB.`);
+  });
+  if (!input.consent && (images.length || characters.some(character => character.portraitSource === 'upload'))) archiveErrors.push('Debes confirmar que puedes utilizar las fotografías.');
   if (archiveErrors.length) return failure(log, 'archivo', 'archivo_requiere_revision', 'Las fotografías no superaron la revisión.', archiveErrors);
   log.push(event('archivo', 'ok', 'archivo_clasificado',
     `${images.length} de ${MAX_FREE_IMAGES} imágenes gratuitas fueron clasificadas para el borrador.`,
@@ -108,7 +117,7 @@ export function runStoryAgents(input) {
   const generated = {
     id: globalThis.crypto?.randomUUID?.() ?? `story-${Date.now()}`, slug: safeSlug(title), title, author,
     status: 'draft', visibility: 'private', plan: 'free', imageLimit: MAX_FREE_IMAGES,
-    imageCount: images.length, character, pages, createdAt: new Date().toISOString()
+    imageCount: images.length, characters, character: characters[0], pages, createdAt: new Date().toISOString()
   };
   log.push(event('ejecutor', 'ok', 'borrador_generado',
     'El Plan B fue generado como borrador privado. No se publicó automáticamente.',
