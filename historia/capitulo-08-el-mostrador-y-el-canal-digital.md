@@ -174,9 +174,11 @@ El tiempo selecciona lo que permanece.
 
 Del grupo que recorría las calles de Santiago a fines del milenio quedaron historias diferentes.
 
-Orlando conservó su lealtad y siguió trabajando junto a Mauricio.
+Orlando conservó su lugar de observador y su lealtad al grupo.
 
-Antonio construyó proyectos junto a Nadia.
+Mauricio, que había conocido a Nadia bajo el durazno mientras ella conversaba con José, construyó con ella una vida que años más tarde los llevaría al matrimonio.
+
+Antonio y Paula mantuvieron durante años una relación que el resto del grupo nunca llegó a conocer del todo.
 
 Y Paz quedó instalada en ese territorio extraño que José había aprendido a llamar Lado B: no como una deuda, sino como la memoria de un camino que pudo haber existido.
 
