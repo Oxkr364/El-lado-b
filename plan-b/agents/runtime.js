@@ -1,6 +1,7 @@
 const MAX_FREE_IMAGES = 5;
 const MAX_FREE_CHARACTERS = 4;
 const MAX_FREE_PAGES = 40;
+const MAX_IMAGE_BYTES = 650 * 1024;
 
 export const AGENTS = Object.freeze({
   canon: { name: 'Canon', role: 'Protege la fuente original' },
@@ -96,11 +97,13 @@ export function runStoryAgents(input) {
   if (images.length > MAX_FREE_IMAGES) archiveErrors.push(`El plan gratuito admite hasta ${MAX_FREE_IMAGES} imágenes.`);
   const invalidImage = images.find(image => !String(image.type ?? '').startsWith('image/'));
   if (invalidImage) archiveErrors.push(`“${invalidImage.name}” no es una imagen válida.`);
+  const oversizedImage = images.find(image => Number(image.size ?? 0) > MAX_IMAGE_BYTES);
+  if (oversizedImage) archiveErrors.push(`“${oversizedImage.name}” supera el máximo de 650 KB después de comprimir.`);
   characters.forEach((character, index) => {
     const label = character.name || `personaje ${index + 1}`;
     if (character.portraitSource === 'upload' && !character.portraitName) archiveErrors.push(`Selecciona la fotografía de ${label} o elige otra opción.`);
     if (character.portraitSource === 'upload' && !['image/jpeg', 'image/png', 'image/webp'].includes(character.portraitType)) archiveErrors.push(`El retrato de ${label} debe ser JPG, PNG o WebP.`);
-    if (character.portraitSource === 'upload' && character.portraitSize > 10485760) archiveErrors.push(`El retrato de ${label} no puede superar 10 MB.`);
+    if (character.portraitSource === 'upload' && character.portraitSize > MAX_IMAGE_BYTES) archiveErrors.push(`El retrato de ${label} supera el máximo de 650 KB después de comprimir.`);
   });
   if (!input.consent && (images.length || characters.some(character => character.portraitSource === 'upload'))) archiveErrors.push('Debes confirmar que puedes utilizar las fotografías.');
   if (archiveErrors.length) return failure(log, 'archivo', 'archivo_requiere_revision', 'Las fotografías no superaron la revisión.', archiveErrors);
@@ -133,4 +136,4 @@ export function runStoryAgents(input) {
   return { ok: true, status: 'draft', story: generated, log };
 }
 
-export { MAX_FREE_IMAGES, MAX_FREE_CHARACTERS, MAX_FREE_PAGES };
+export { MAX_FREE_IMAGES, MAX_FREE_CHARACTERS, MAX_FREE_PAGES, MAX_IMAGE_BYTES };
