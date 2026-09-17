@@ -1,7 +1,27 @@
 const files=['historia/capitulo-01-el-eco-en-la-madera.md','historia/capitulo-02-el-teorema-del-naranjo.md','historia/capitulo-03-la-moneda-y-el-sillon.md','historia/capitulo-04-la-grieta-de-septiembre.md','historia/capitulo-05-el-asado-del-2000.md','historia/capitulo-06-el-canal-del-2001.md','historia/capitulo-07-las-cicatrices-del-2002.md','historia/capitulo-08-el-mostrador-y-el-canal-digital.md'];
 const sheetTitles=['Portada','La primera hoja','Santiago, diciembre de 1998','El gimnasio','Paz y Siddhartha','La primera mirada','El idioma propio','La invitación','La fiesta','Los seis','José y Paz bailan','El Naranjo','Los celos de Paz','Los aspersores','La salida','La micro nocturna','La moneda de cien pesos','El sillón','La puerta','La mañana','Septiembre de 1999','La grieta','El papel de siete dígitos','La agenda','El asado del 2000','Lo que se recuerda','El mensaje escondido','El regreso del papel','El teléfono fijo','El restaurante chino','La pregunta','La respuesta de José','La casa familiar','Paz vuelve a entrar','Antonio llega con José','Paula y Antonio: una sombra','Yo no soy puta','Cuando quiero que estés... no estás.','Dos lados de la cama','La puerta de la mañana','El mostrador','Dos adultos','Facebook','El mensaje','¿Me extrañaste?','La última pregunta','En esta vida no se pudo...','Lo que quedó','La hermana elegida'];
 const chapterSheets=[[3,8],[9,15],[16,20],[21,24],[25,28],[29,32],[33,40],[41,49]];
-const visuals={30:[{src:'assets/story/2001-restaurante-chino.webp',alt:'José y Paz conversando en un restaurante chino, Santiago, 2001',caption:'Santiago · 2001'}]};
+const canon='assets/story/canon/';
+const visuals={
+4:[{src:canon+'17-gimnasio-jose-paz-paula.webp',alt:'José, Paz y Paula en el gimnasio, Santiago, 1998',caption:'Santiago · 1998'}],
+5:[{src:canon+'15-paz-gimnasio.webp',alt:'Paz leyendo en el gimnasio',caption:'Paz · Siddhartha · 1998'}],
+8:[{src:canon+'16-paula-volantes-gimnasio.webp',alt:'Paula llega al gimnasio con las invitaciones',caption:'La invitación · 1998'}],
+9:[{src:canon+'13-paula-jose-durazno.webp',alt:'Paula y José durante la fiesta de diciembre',caption:'30 de diciembre · 1998'}],
+10:[{src:canon+'12-grupo-fiesta-1998.webp',alt:'El grupo reunido en la fiesta de 1998',caption:'Los seis · 1998'}],
+11:[{src:canon+'14-baile-jose-paz.webp',alt:'José y Paz bailando en la fiesta',caption:'José y Paz · 1998'}],
+12:[{src:canon+'18-paz-observa-jose-nadia.webp',alt:'Paz observa a José conversando con Nadia bajo el árbol',caption:'El Naranjo · Nadia · 1998'}],
+13:[{src:canon+'09-jose-paula-mauricio-paz.webp',alt:'José, Paula, Mauricio y Paz durante la noche de la fiesta',caption:'La fiesta · 1998'}],
+14:[{src:canon+'11-regador-jose-paz.webp',alt:'José y Paz sorprendidos por los aspersores',caption:'Los aspersores · 1998'}],
+18:[{src:canon+'10-noche-jose-paz.webp',alt:'José y Paz en la casa durante la noche',caption:'La noche · 1999'}],
+22:[{src:canon+'05-paz-mauricio-jose.webp',alt:'Paz, Mauricio y José en un encuentro del grupo',caption:'La grieta · 1999'}],
+23:[{src:canon+'07-numero-341-2856.webp',alt:'Paz entrega a José el papel con siete dígitos',caption:'El papel · 1999'}],
+25:[{src:canon+'08-asado-grupo.webp',alt:'El grupo reunido alrededor de la mesa en un asado',caption:'El asado · 2000'}],
+29:[{src:canon+'06-llamada-jose-2001.webp',alt:'José realiza una llamada desde un teléfono fijo',caption:'El teléfono fijo · 2001'}],
+30:[{src:canon+'04-restaurante-chino-paz-jose.webp',alt:'José y Paz conversando en un restaurante chino',caption:'Santiago · 2001'}],
+31:[{src:canon+'02-paradero-paz-jose.webp',alt:'Paz y José conversan en un paradero',caption:'La pregunta · 2001'}],
+41:[{src:canon+'03-libreria-paz-jose.webp',alt:'Paz y José se reencuentran frente al mostrador',caption:'El mostrador · 2006'}],
+43:[{src:canon+'01-facebook-paz.webp',alt:'José frente al computador durante el reencuentro digital con Paz',caption:'Facebook · 2009'}]
+};
 const book=document.querySelector('#book'),agenda=document.querySelector('#agenda'),open=document.querySelector('#openAgenda'),prev=document.querySelector('#prev'),next=document.querySelector('#next'),label=document.querySelector('#pageLabel');let pages=[],current=0;
 const esc=s=>(s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 function parse(md){const lines=md.replace(/\r/g,'').split('\n');let title='',date='',blocks=[];for(const raw of lines){let l=raw.trim();if(!l)continue;if(l.startsWith('## Nota editorial'))break;if(/^# /.test(l)){title=l.slice(2);continue}if(/^\*[^*]+\*$/.test(l)&&!l.startsWith('**')){date=l.replace(/^\*|\*$/g,'');continue}if(l==='---'||/^[-•]\s/.test(l))continue;if(/^> /.test(l))blocks.push(`<blockquote>${esc(l.slice(2))}</blockquote>`);else if(/^### /.test(l))blocks.push(`<h3>${esc(l.slice(4))}</h3>`);else if(/^## /.test(l))blocks.push(`<h2>${esc(l.slice(3))}</h2>`);else blocks.push(`<p>${esc(l.replace(/\*\*/g,''))}</p>`)}return{title,date,blocks}}
