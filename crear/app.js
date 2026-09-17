@@ -1,4 +1,4 @@
-import { MAX_FREE_IMAGES, runStoryAgents } from '../plan-b/agents/runtime.js';
+import { MAX_FREE_IMAGES, MAX_FREE_CHARACTERS, runStoryAgents } from '../plan-b/agents/runtime.js';
 const $ = id => document.getElementById(id);
 const db = window.supabase?.createClient('https://bqrwcmrpzvtjoebmqiji.supabase.co', 'sb_publishable_XK4dh9Ch_7MebSMO7JJm7Q_8CXu2Qa8');
 let selectedImages = [], previewUrls = [], characters = [], currentUser = null, generatedResult = null;
@@ -32,7 +32,7 @@ function renderCharacters() {
     card.querySelector('.remove-character')?.addEventListener('click', () => { if (character.previewUrl) URL.revokeObjectURL(character.previewUrl); characters = characters.filter(item => item.id !== character.id); renderCharacters(); });
     list.appendChild(card);
   });
-  $('addCharacterBtn').disabled = characters.length >= 20; $('addCharacterBtn').textContent = characters.length >= 20 ? 'LÍMITE DE 20 PERSONAJES' : '＋ AÑADIR OTRO PERSONAJE';
+  $('addCharacterBtn').disabled = characters.length >= MAX_FREE_CHARACTERS; $('addCharacterBtn').textContent = characters.length >= MAX_FREE_CHARACTERS ? 'LÍMITE GRATUITO: 4 PERSONAJES' : '＋ AÑADIR OTRO PERSONAJE';
 }
 
 function renderImages() {
@@ -70,7 +70,7 @@ async function persistStory() {
   } catch (error) { if (uploadedPaths.length) await db.storage.from('story-media').remove(uploadedPaths); if (savedStory?.id) await db.from('user_stories').delete().eq('id', savedStory.id); setErrors([`No se pudo guardar: ${error.message}`]); button.disabled = false; button.textContent = 'INTENTAR NUEVAMENTE'; }
 }
 
-$('addCharacterBtn').onclick = () => { if (characters.length < 20) { characters.push(createCharacter()); renderCharacters(); } };
+$('addCharacterBtn').onclick = () => { if (characters.length < MAX_FREE_CHARACTERS) { characters.push(createCharacter()); renderCharacters(); } };
 $('images').onchange = event => { const incoming = [...event.target.files], remaining = MAX_FREE_IMAGES - selectedImages.length; selectedImages.push(...incoming.slice(0, Math.max(remaining, 0))); event.target.value = ''; renderImages(); };
 $('story').oninput = event => { $('storyCount').textContent = event.target.value.length.toLocaleString('es-CL'); };
 $('storyForm').onsubmit = async event => { event.preventDefault(); $('preview').hidden = true; const result = runStoryAgents({ author: $('author').value, title: $('title').value, story: $('story').value, consent: $('consent').checked, characters: characters.map(c => ({ name: c.name, description: c.description, role: c.role, relationship: c.relationship, portraitSource: c.portraitSource, portraitName: c.image?.name ?? '', portraitType: c.image?.type ?? '', portraitSize: c.image?.size ?? 0 })), images: selectedImages.map(file => ({ name: file.name, type: file.type, size: file.size })) }); await animateLog(result.log); if (!result.ok) { setErrors(result.errors); $('pipelineState').className = 'status error'; $('pipelineState').textContent = 'BLOQUEADO'; return; } setErrors(); $('pipelineState').className = 'status done'; $('pipelineState').textContent = 'BORRADOR LISTO'; $('processingMessage').textContent = 'Tu historia está lista para revisar.'; localStorage.setItem('plan_b_creator_draft', JSON.stringify({ author: result.story.author, title: result.story.title, story: $('story').value, characters: result.story.characters })); generatedResult = result; renderPreview(result); };
