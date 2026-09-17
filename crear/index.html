@@ -11,6 +11,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;600&family=Libre+Baskerville:wght@400;700&family=Special+Elite&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="./style.css">
   <link rel="stylesheet" href="./auth.css">
+  <link rel="stylesheet" href="./characters.css">
 </head>
 <body>
   <div class="grain" aria-hidden="true"></div>
@@ -29,6 +30,20 @@
           <label>Autor o autora<input id="author" name="author" autocomplete="name" maxlength="80" placeholder="Tu nombre"></label>
           <label>Título de la historia<input id="title" name="title" required minlength="3" maxlength="100" placeholder="El día que todo cambió"></label>
         </div>
+        <fieldset class="character-fieldset">
+          <legend>Personaje principal <span>no consume tus 5 imágenes</span></legend>
+          <div class="field-grid">
+            <label>Nombre del personaje<input id="characterName" maxlength="80" placeholder="José"></label>
+            <label>Descripción<textarea id="characterDescription" maxlength="1200" rows="4" placeholder="Tiene 28 años, cabello oscuro, es reservado y suele vestir de negro."></textarea></label>
+          </div>
+          <div class="portrait-options" role="radiogroup" aria-label="Imagen del personaje">
+            <label><input type="radio" name="portraitSource" value="upload" checked><span><strong>Subir fotografía</strong><small>Usaremos tu imagen como referencia.</small></span></label>
+            <label><input type="radio" name="portraitSource" value="ai"><span><strong>Crear con IA</strong><small>A partir del nombre y la descripción.</small></span></label>
+            <label><input type="radio" name="portraitSource" value="none"><span><strong>Continuar sin imagen</strong><small>Podrás agregarla más adelante.</small></span></label>
+          </div>
+          <div id="portraitUpload" class="portrait-upload"><label class="dropzone compact" for="characterImage"><strong>Agregar retrato del personaje</strong><span>JPG, PNG o WebP.</span><input id="characterImage" type="file" accept="image/jpeg,image/png,image/webp"></label><div id="characterPreview"></div></div>
+          <p id="aiPortraitNote" class="ai-note" hidden>La ficha visual quedará preparada para generar un retrato consistente. La generación se activará al conectar el servicio seguro de imágenes.</p>
+        </fieldset>
         <label>Tu relato<textarea id="story" name="story" required minlength="80" maxlength="12000" rows="10" placeholder="Cuenta lo que ocurrió con tus propias palabras. Los agentes pueden ordenar el material, pero no inventarán hechos para llenar los vacíos."></textarea><span class="counter"><b id="storyCount">0</b> / 12.000 caracteres</span></label>
         <fieldset>
           <legend>Fotografías <span id="imageCount">0 de 5 gratis</span></legend>
@@ -40,17 +55,13 @@
         <div class="actions"><button id="generateBtn" class="primary" type="submit">DAR VIDA A LOS AGENTES <span>→</span></button><span class="privacy">Borrador privado · publicación manual</span></div>
       </form>
     </section>
-    <aside class="agents" aria-labelledby="agentsTitle">
-      <div class="agents-head"><p class="eyebrow">SALA DE MÁQUINAS</p><h2 id="agentsTitle">Ocho agentes. Una historia.</h2><span id="pipelineState" class="status idle">EN ESPERA</span></div>
-      <ol id="agentList" class="agent-list"></ol>
-    </aside>
+    <section id="processing" class="processing" aria-live="polite"><span id="pipelineState" class="status idle">LISTO PARA COMENZAR</span><p id="processingMessage">Cuéntanos tu historia y prepararemos el borrador.</p></section>
     <section id="preview" class="preview" aria-labelledby="previewTitle" hidden>
       <div class="preview-head"><div><p class="eyebrow">BORRADOR GENERADO</p><h2 id="previewTitle"></h2><p id="previewMeta"></p></div><span class="private-badge">PRIVADO</span></div>
       <div id="previewPages" class="preview-pages"></div>
       <div class="preview-notice"><strong id="saveTitle">Tu historia no fue publicada.</strong><span id="saveDetail">La vista previa permanece en este dispositivo.</span><button id="saveBtn" class="primary" type="button">GUARDAR BORRADOR PRIVADO</button></div>
     </section>
   </main>
-  <template id="agentTemplate"><li class="agent-card" data-state="idle"><span class="agent-number"></span><div><strong class="agent-name"></strong><small class="agent-role"></small><p class="agent-result">Esperando material.</p></div><span class="agent-state">○</span></li></template>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script type="module" src="./app.js"></script>
 </body>
