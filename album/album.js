@@ -1,0 +1,17 @@
+const photos=[
+{year:'1996',place:'Santiago',title:'De uniforme',note:'Antes de que alguien pensara en guardar una historia.',src:'assets/uniformes.webp'},
+{year:'1998',place:'Reñaca',title:'Paz leyendo',note:'Había días en que bastaba un libro y el ruido del mar.',src:'assets/paz-leyendo.webp'},
+{year:'1998',place:'Reñaca',title:'Paula',note:'Paula nunca necesitó que la cámara le pidiera atención.',src:'assets/paula-renaca-1998.webp'},
+{year:'1998',place:'Santiago',title:'Día de los Muertos',note:'Una noche cualquiera antes de que las cosas dejaran de ser cualquiera.',src:'assets/dia-muertos.webp'},
+{year:'1999',place:'Costa central',title:'La fogata',note:'Por un rato todavía cabían todos alrededor del mismo fuego.',src:'assets/fogata.webp'},
+{year:'1999',place:'Cerro San Cristóbal',title:'A los pies de la Virgen',note:'Subieron juntos. Nadie preguntó cuánto iba a durar aquello.',src:'assets/san-cristobal.webp'},
+{year:'1999',place:'Playa',title:'Antonio y una historia',note:'Hay fotografías que solo se entienden muchos años después.',src:'assets/antonio-playa.webp'},
+{year:'1999',place:'Viña del Mar',title:'José y Antonio',note:'El pool era la excusa. La amistad era lo que se repetía.',src:'assets/pool.webp'},
+{year:'1999',place:'Reñaca',title:'Paula y el Escarabajo',note:'Un auto pequeño podía contener un verano completo.',src:'assets/paula-escarabajo.webp'},
+{year:'2000',place:'Santiago',title:'Paula y Paz',note:'Todavía había noches en que el futuro parecía no haber empezado.',src:'assets/disco-2000.webp'},
+{year:'2000',place:'Biblioteca Nacional',title:'Paz y José',note:'También hubo silencios que ocurrieron entre libros.',src:'assets/biblioteca-nacional.webp'},
+{year:'2022',place:'Reñaca',title:'Paula',note:'Algunas personas cambian de época sin dejar de reconocerse.',src:'assets/paula-2022.webp'}];
+const spread=document.querySelector('#spread'),album=document.querySelector('#album'),open=document.querySelector('#openAlbum'),prev=document.querySelector('#prev'),next=document.querySelector('#next'),count=document.querySelector('#count');let current=0;
+function render(){spread.innerHTML=photos.map((p,i)=>`<article class="photo-page ${i===0?'active':''}"><div class="meta"><span>${p.year}</span><span>${p.place}</span></div><div class="photo-wrap" style="--tilt:${i%2?1.1:-1.2}deg"><img src="${p.src}" alt="${p.title}" loading="lazy" onerror="this.parentElement.innerHTML='<div class=missing>Fotografía reservada para el archivo definitivo</div>'"></div><p class="caption">${p.title}</p><p class="note">${p.note}</p></article>`).join('');update()}
+function update(){document.querySelectorAll('.photo-page').forEach((el,i)=>el.classList.toggle('active',i===current));count.textContent=`FOTO ${String(current+1).padStart(2,'0')} / ${String(photos.length).padStart(2,'0')}`;prev.disabled=current===0;next.disabled=current===photos.length-1}
+open.onclick=()=>{album.classList.add('open');album.setAttribute('aria-hidden','false');album.scrollIntoView({behavior:'smooth'});render()};prev.onclick=()=>{if(current){current--;update();spread.scrollIntoView({behavior:'smooth'})}};next.onclick=()=>{if(current<photos.length-1){current++;update();spread.scrollIntoView({behavior:'smooth'})}};
