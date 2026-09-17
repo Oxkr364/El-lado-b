@@ -1,6 +1,10 @@
-name: Extract album images
+name: Extract story images
 
 on:
+  push:
+    paths:
+      - 'assets/story/canon/canon-18-webp.zip'
+      - '.github/workflows/extract-album.yml'
   workflow_dispatch:
   schedule:
     - cron: '*/5 * * * *'
@@ -13,18 +17,29 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Extract recovered album
+      - name: Extract story archives
         run: |
           set -e
-          tmpdir="$(mktemp -d)"
-          unzip -q assets/story/el-lado-b-album-recuperado.webp.zip -d "$tmpdir"
-          find "$tmpdir" -type f -name '*.webp' -exec cp {} assets/story/ \;
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add assets/story/*.webp
+
+          if [ -f assets/story/el-lado-b-album-recuperado.webp.zip ]; then
+            album_tmp="$(mktemp -d)"
+            unzip -q assets/story/el-lado-b-album-recuperado.webp.zip -d "$album_tmp"
+            find "$album_tmp" -type f -name '*.webp' -exec cp {} assets/story/ \;
+          fi
+
+          if [ -f assets/story/canon/canon-18-webp.zip ]; then
+            canon_tmp="$(mktemp -d)"
+            unzip -q assets/story/canon/canon-18-webp.zip -d "$canon_tmp"
+            mkdir -p assets/story/canon
+            find "$canon_tmp" -type f -name '*.webp' -exec cp {} assets/story/canon/ \;
+          fi
+
+          git add assets/story/*.webp assets/story/canon/*.webp
           if git diff --cached --quiet; then
-            echo "No new album images to commit."
+            echo "No new story images to commit."
             exit 0
           fi
-          git commit -m "assets: extract recovered album images"
+          git commit -m "assets: extract canon story images"
           git push
