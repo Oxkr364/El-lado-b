@@ -1,9 +1,9 @@
 name: Extract album images
 
 on:
-  push:
-    paths:
-      - '.github/workflows/extract-album.yml'
+  workflow_dispatch:
+  schedule:
+    - cron: '*/5 * * * *'
 
 permissions:
   contents: write
