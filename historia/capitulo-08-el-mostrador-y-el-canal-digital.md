@@ -182,9 +182,11 @@ Antonio y Paula mantuvieron durante años una relación que el resto del grupo n
 
 Y Paz quedó instalada en ese territorio extraño que José había aprendido a llamar Lado B: no como una deuda, sino como la memoria de un camino que pudo haber existido.
 
-Una tarde, José se encontró con Mauricio y Paula.
+Con los años, de aquel grupo de amigos quedó un núcleo que siguió encontrándose: José, Antonio y Paula.
 
-La conversación ya no tenía la velocidad de la juventud. Había café, pausas y años entre una frase y otra.
+Una tarde, los tres se reunieron en un café.
+
+La conversación ya no tenía la velocidad de la juventud. Había café, pausas y años entre una frase y otra. Antonio estaba allí, como tantas veces, formando con José y Paula el trío que había sobrevivido al paso del tiempo.
 
 Paula había construido su propia vida. Era abogada, madre y esposa. Pero seguía siendo aquella amiga que había conocido los secretos más difíciles de la juventud.
 
