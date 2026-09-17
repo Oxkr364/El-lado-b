@@ -1,4 +1,6 @@
 const MAX_FREE_IMAGES = 5;
+const MAX_FREE_CHARACTERS = 4;
+const MAX_FREE_PAGES = 40;
 
 export const AGENTS = Object.freeze({
   canon: { name: 'Canon', role: 'Protege la fuente original' },
@@ -45,7 +47,7 @@ export function runStoryAgents(input) {
   const author = normalizeText(input.author) || 'Autor anónimo';
   const images = Array.isArray(input.images) ? input.images : [];
   const sourceCharacters = Array.isArray(input.characters) ? input.characters : (input.character ? [input.character] : []);
-  const characters = sourceCharacters.slice(0, 20).map((item, index) => ({
+  const characters = sourceCharacters.map((item, index) => ({
     name: normalizeText(item?.name),
     description: normalizeText(item?.description),
     role: index === 0 ? 'protagonist' : (['coprotagonist', 'secondary'].includes(item?.role) ? item.role : 'secondary'),
@@ -63,6 +65,7 @@ export function runStoryAgents(input) {
   const editorialErrors = [];
   if (title.length < 3) editorialErrors.push('El título debe tener al menos 3 caracteres.');
   if (story.length < 80) editorialErrors.push('El relato debe tener al menos 80 caracteres.');
+  if (characters.length > MAX_FREE_CHARACTERS) editorialErrors.push(`La edición gratuita admite hasta ${MAX_FREE_CHARACTERS} personajes.`);
   if (!characters.length) editorialErrors.push('Agrega al menos un personaje protagonista.');
   characters.forEach((character, index) => {
     if (character.name.length < 2) editorialErrors.push(`El personaje ${index + 1} necesita un nombre.`);
@@ -71,6 +74,7 @@ export function runStoryAgents(input) {
   if (editorialErrors.length) return failure(log, 'editor', 'material_incompleto', 'Falta material para construir una historia.', editorialErrors);
 
   const rawSections = splitStory(story);
+  if (rawSections.length > MAX_FREE_PAGES) return failure(log, 'editor', 'limite_paginas', `La edición gratuita admite hasta ${MAX_FREE_PAGES} páginas.`, [`Reduce el relato a ${MAX_FREE_PAGES} páginas o menos.`]);
   log.push(event('editor', 'ok', 'material_clasificado',
     `El relato quedó organizado en ${rawSections.length} fragmentos narrativos.`,
     { type: 'textual', destination: 'user_plan_b', sections: rawSections.length }));
@@ -117,6 +121,7 @@ export function runStoryAgents(input) {
   const generated = {
     id: globalThis.crypto?.randomUUID?.() ?? `story-${Date.now()}`, slug: safeSlug(title), title, author,
     status: 'draft', visibility: 'private', plan: 'free', imageLimit: MAX_FREE_IMAGES,
+    characterLimit: MAX_FREE_CHARACTERS, pageLimit: MAX_FREE_PAGES,
     imageCount: images.length, characters, character: characters[0], pages, createdAt: new Date().toISOString()
   };
   log.push(event('ejecutor', 'ok', 'borrador_generado',
@@ -128,4 +133,4 @@ export function runStoryAgents(input) {
   return { ok: true, status: 'draft', story: generated, log };
 }
 
-export { MAX_FREE_IMAGES };
+export { MAX_FREE_IMAGES, MAX_FREE_CHARACTERS, MAX_FREE_PAGES };
