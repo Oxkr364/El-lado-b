@@ -1,0 +1,30 @@
+name: Extract album images
+
+on:
+  push:
+    paths:
+      - '.github/workflows/extract-album.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  extract:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Extract recovered album
+        run: |
+          set -e
+          tmpdir="$(mktemp -d)"
+          unzip -q assets/story/el-lado-b-album-recuperado.webp.zip -d "$tmpdir"
+          find "$tmpdir" -type f -name '*.webp' -exec cp {} assets/story/ \;
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add assets/story/*.webp
+          if git diff --cached --quiet; then
+            echo "No new album images to commit."
+            exit 0
+          fi
+          git commit -m "assets: extract recovered album images"
+          git push
