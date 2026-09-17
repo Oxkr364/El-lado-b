@@ -1,77 +1,13 @@
 <!doctype html>
 <html lang="es">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#111015">
-<title>El Lado B — Plan B</title>
-<meta name="description" content="Una reconstrucción narrativa construida a partir de tus decisiones.">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;600&family=Libre+Baskerville:wght@400;700&family=Special+Elite&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="./style.css">
-</head>
-<body>
-<div class="grain" aria-hidden="true"></div>
-<main class="shell">
-<header class="topbar">
-  <a class="brand" href="../index.html">EL LADO B</a>
-  <span class="mode">PLAN B · RECONSTRUCCIÓN</span>
-</header>
-
-<section id="intro" class="intro panel">
-  <div class="tablet-mark"><span>▱</span><small>ARCHIVO · PLAN B</small></div>
-  <p class="eyebrow">NO CAMBIAMOS LA HISTORIA</p>
-  <h1>La historia recuerda lo que tú decides.</h1>
-  <p class="lead">El Lado A permanece intacto. Aquí comienza otra trayectoria: pequeñas decisiones, consecuencias emocionales y una historia que aprende de tus elecciones.</p>
-  <div class="intro-rule"><span>01</span><i></i><span>09</span></div>
-  <button id="startBtn" class="primary">ABRIR PLAN B <span>→</span></button>
-  <p class="hand-intro">No hay respuesta correcta.<br>Solo hay una historia que habría podido ser distinta.</p>
-</section>
-
-<section id="reader" class="reader hidden">
-  <div class="statusbar">
-    <span id="progressLabel">Decisión 1</span>
-    <div class="progress"><span id="progressBar"></span></div>
-    <span class="memory-dot">●</span>
-  </div>
-
-  <article class="narrative panel">
-    <div class="chapter-line"><span id="chapterLabel" class="eyebrow"></span><span class="page-tag">MEMORIA</span></div>
-    <h2 id="decisionTitle"></h2>
-    <p id="summary" class="summary"></p>
-    <div class="marginalia">Lo importante no siempre ocurre cuando parece.</div>
-  </article>
-
-  <section id="choice-panel" class="choice-panel panel">
-    <div class="choice-head"><p class="eyebrow">PUNTO DE QUIEBRE</p><span>elige</span></div>
-    <h3 id="question"></h3>
-    <div id="choices" class="choices"></div>
-    <p class="choice-foot">Tu decisión no cambia lo ocurrido. Cambia lo que pudo haber ocurrido después.</p>
-  </section>
-
-  <article id="development" class="development panel hidden">
-    <div class="development-top"><p class="eyebrow">LA HISTORIA RESPONDE</p><span>MEMORIA ACTUALIZADA</span></div>
-    <p id="bridge"></p>
-    <div class="state-line"><span>Tu trayectoria</span><span id="trajectoryCount">0 decisiones</span></div>
-    <button id="continueBtn" class="secondary">Seguir leyendo <span>→</span></button>
-  </article>
-</section>
-
-<section id="closure" class="closure panel hidden">
-  <p class="eyebrow">CIERRE DEL LADO B</p>
-  <h2 id="closureTitle"></h2>
-  <p id="closureText"></p>
-  <div class="closure-card"><span>HAS CONSTRUIDO</span><strong>UNA TRAYECTORIA POSIBLE</strong><small id="closureCount"></small></div>
-  <button id="restartBtn" class="secondary">Volver al comienzo</button>
-</section>
-
-<footer>
-  <span>EL LADO A CUENTA LO QUE OCURRIÓ.</span>
-  <span>EL LADO B RECONSTRUYE LO QUE PUDO HABER OCURRIDO.</span>
-</footer>
-</main>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script type="module" src="./app.js"></script>
-</body>
-</html>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#111015">
+<title>El Lado B — Plan B</title><meta name="description" content="Una reconstrucción narrativa construida a partir de tus decisiones.">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;600&family=Libre+Baskerville:wght@400;700&family=Special+Elite&display=swap" rel="stylesheet"><link rel="stylesheet" href="./style.css">
+</head><body><div class="grain" aria-hidden="true"></div><main class="shell">
+<header class="topbar"><a class="brand" href="../index.html">EL LADO B</a><span class="mode">PLAN B · RECONSTRUCCIÓN</span></header>
+<section id="intro" class="intro panel"><div class="tablet-mark"><span>▱</span><small>ARCHIVO · PLAN B</small></div><p class="eyebrow">NO CAMBIAMOS LA HISTORIA</p><h1>La historia recuerda lo que tú decides.</h1><p class="lead">El Lado A permanece intacto. Aquí comienza otra trayectoria: pequeñas decisiones, consecuencias emocionales y una historia que aprende de tus elecciones.</p><div class="intro-rule"><span>01</span><i></i><span>09</span></div><button id="startBtn" class="primary">ABRIR PLAN B <span>→</span></button><p class="hand-intro">No hay respuesta correcta.<br>Solo hay una historia que habría podido ser distinta.</p></section>
+<section id="reader" class="reader hidden"><div class="statusbar"><span id="progressLabel">Decisión 1</span><div class="progress"><span id="progressBar"></span></div><span class="memory-dot">●</span></div><article class="narrative panel"><div class="chapter-line"><span id="chapterLabel" class="eyebrow"></span><span class="page-tag">MEMORIA</span></div><h2 id="decisionTitle"></h2><p id="summary" class="summary"></p><div class="marginalia">Lo importante no siempre ocurre cuando parece.</div></article><section id="choice-panel" class="choice-panel panel"><div class="choice-head"><p class="eyebrow">PUNTO DE QUIEBRE</p><span>elige</span></div><h3 id="question"></h3><div id="choices" class="choices"></div><p class="choice-foot">Tu decisión no cambia lo ocurrido. Cambia lo que pudo haber ocurrido después.</p></section><article id="development" class="development panel hidden"><div class="development-top"><p class="eyebrow">LA HISTORIA RESPONDE</p><span>MEMORIA ACTUALIZADA</span></div><p id="bridge"></p><div class="state-line"><span>Tu trayectoria</span><span id="trajectoryCount">0 decisiones</span></div><button id="continueBtn" class="secondary">Seguir leyendo <span>→</span></button></article></section>
+<section id="closure" class="closure panel hidden"><p class="eyebrow">CIERRE DEL LADO B</p><h2 id="closureTitle"></h2><p id="closureText"></p><div class="closure-card"><span>HAS CONSTRUIDO</span><strong>UNA HISTORIA POSIBLE</strong><small id="closureCount"></small></div><button id="readStoryBtn" class="primary">LEER MI HISTORIA <span>→</span></button><button id="restartBtn" class="secondary">Volver al comienzo</button></section>
+<section id="completeStory" class="closure panel hidden"><p class="eyebrow">TU LADO B</p><h1>La historia que construiste</h1><p class="lead">Ahora las decisiones desaparecen. Queda solamente la historia.</p><div id="storyBody" class="story-body"></div><div id="storyEpilogue" class="closure-card"></div><button id="backClosureBtn" class="secondary">Volver al cierre</button></section>
+<footer><span>EL LADO A CUENTA LO QUE OCURRIÓ.</span><span>EL LADO B RECONSTRUYE LO QUE PUDO HABER OCURRIDO.</span></footer></main><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script type="module" src="./app.js"></script></body></html>
