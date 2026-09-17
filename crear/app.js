@@ -1,7 +1,6 @@
-import { AGENTS, MAX_FREE_IMAGES, runStoryAgents } from '../plan-b/agents/runtime.js';
+import { MAX_FREE_IMAGES, runStoryAgents } from '../plan-b/agents/runtime.js';
 
 const $ = id => document.getElementById(id);
-const agentOrder = ['canon', 'editor', 'friccion', 'narrador', 'archivo', 'validador', 'planificador', 'ejecutor'];
 const SUPABASE_URL = 'https://bqrwcmrpzvtjoebmqiji.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_XK4dh9Ch_7MebSMO7JJm7Q_8CXu2Qa8';
 const db = window.supabase?.createClient(SUPABASE_URL, SUPABASE_KEY);
@@ -9,19 +8,8 @@ let selectedImages = [];
 let previewUrls = [];
 let currentUser = null;
 let generatedResult = null;
-
-function renderAgentRoster() {
-  const list = $('agentList');
-  list.innerHTML = '';
-  agentOrder.forEach((key, index) => {
-    const node = $('agentTemplate').content.firstElementChild.cloneNode(true);
-    node.dataset.agent = key;
-    node.querySelector('.agent-number').textContent = String(index + 1).padStart(2, '0');
-    node.querySelector('.agent-name').textContent = AGENTS[key].name;
-    node.querySelector('.agent-role').textContent = AGENTS[key].role;
-    list.appendChild(node);
-  });
-}
+let characterImage = null;
+let characterPreviewUrl = null;
 
 function renderImages() {
   previewUrls.forEach(URL.revokeObjectURL);
@@ -59,27 +47,13 @@ function setErrors(errors = []) {
   box.append(title, list);
 }
 
-function resetAgents() {
-  document.querySelectorAll('.agent-card').forEach(card => {
-    card.dataset.state = 'idle';
-    card.querySelector('.agent-result').textContent = 'Esperando material.';
-    card.querySelector('.agent-state').textContent = '○';
-  });
-}
-
 async function animateLog(log) {
-  resetAgents();
   $('pipelineState').className = 'status working';
-  $('pipelineState').textContent = 'PROCESANDO';
-  for (const item of log) {
-    const card = document.querySelector(`[data-agent="${item.agent}"]`);
-    if (!card) continue;
-    card.dataset.state = 'working';
-    card.querySelector('.agent-state').textContent = '…';
-    await new Promise(resolve => setTimeout(resolve, 180));
-    card.dataset.state = item.status === 'ok' ? 'done' : 'error';
-    card.querySelector('.agent-result').textContent = item.detail;
-    card.querySelector('.agent-state').textContent = item.status === 'ok' ? '✓' : '!';
+  $('pipelineState').textContent = 'PREPARANDO TU HISTORIA';
+  const messages = ['Leyendo tu relato…', 'Organizando los recuerdos…', 'Preparando los personajes…', 'Construyendo la vista previa…'];
+  for (const message of messages) {
+    $('processingMessage').textContent = message;
+    await new Promise(resolve => setTimeout(resolve, Math.max(180, log.length * 24)));
   }
 }
 
@@ -89,6 +63,28 @@ function renderPreview(result) {
   $('previewMeta').textContent = `Por ${story.author} · ${story.pages.length} páginas · ${story.imageCount} fotografías`;
   const pages = $('previewPages');
   pages.innerHTML = '';
+  const character = document.createElement('article');
+  character.className = 'character-preview-card';
+  const portrait = document.createElement('div');
+  portrait.className = 'character-portrait';
+  if (characterPreviewUrl) {
+    const image = document.createElement('img');
+    image.src = characterPreviewUrl;
+    image.alt = `Retrato de ${story.character.name}`;
+    portrait.appendChild(image);
+  } else {
+    portrait.textContent = story.character.name.slice(0, 1).toUpperCase();
+  }
+  const characterCopy = document.createElement('div');
+  const characterLabel = document.createElement('span');
+  const characterName = document.createElement('h3');
+  const characterDescription = document.createElement('p');
+  characterLabel.textContent = story.character.portraitSource === 'ai' ? 'RETRATO IA SOLICITADO' : 'PERSONAJE PRINCIPAL';
+  characterName.textContent = story.character.name;
+  characterDescription.textContent = story.character.description;
+  characterCopy.append(characterLabel, characterName, characterDescription);
+  character.append(portrait, characterCopy);
+  pages.appendChild(character);
   story.pages.forEach(page => {
     const article = document.createElement('article');
     const number = document.createElement('span');
@@ -227,6 +223,27 @@ async function persistStory() {
       if (mediaError) throw mediaError;
     }
 
+    const portraitSource = story.character.portraitSource;
+    let portraitPath = null;
+    let portraitStatus = portraitSource === 'ai' ? 'pending' : 'none';
+    if (portraitSource === 'upload' && characterImage) {
+      const extension = characterImage.name.split('.').pop()?.toLowerCase().replace(/[^a-z0-9]/g, '') || 'img';
+      portraitPath = `${currentUser.id}/${data.id}/characters/${crypto.randomUUID()}.${extension}`;
+      const { error: portraitError } = await db.storage.from('story-media').upload(portraitPath, characterImage, {
+        cacheControl: '3600', contentType: characterImage.type, upsert: false
+      });
+      if (portraitError) throw portraitError;
+      uploadedPaths.push(portraitPath);
+      portraitStatus = 'ready';
+    }
+    const { error: characterError } = await db.from('user_story_characters').insert({
+      story_id: data.id, owner_id: currentUser.id, name: story.character.name,
+      description: story.character.description, position: 1, portrait_source: portraitSource,
+      portrait_storage_path: portraitPath, portrait_status: portraitStatus,
+      ai_prompt: portraitSource === 'ai' ? `${story.character.name}: ${story.character.description}` : null
+    });
+    if (characterError) throw characterError;
+
     const { error: eventsError } = await db.from('user_story_agent_events').insert(generatedResult.log.map(item => ({
       story_id: data.id, owner_id: currentUser.id, agent: item.agent, status: item.status,
       result: item.result, detail: item.detail, event_data: item.data
@@ -265,6 +282,14 @@ $('storyForm').addEventListener('submit', async event => {
   const result = runStoryAgents({
     author: $('author').value, title: $('title').value, story: $('story').value,
     consent: $('consent').checked,
+    character: {
+      name: $('characterName').value,
+      description: $('characterDescription').value,
+      portraitSource: document.querySelector('input[name="portraitSource"]:checked')?.value,
+      portraitName: characterImage?.name ?? '',
+      portraitType: characterImage?.type ?? '',
+      portraitSize: characterImage?.size ?? 0
+    },
     images: selectedImages.map(file => ({ name: file.name, type: file.type, size: file.size }))
   });
   await animateLog(result.log);
@@ -272,12 +297,18 @@ $('storyForm').addEventListener('submit', async event => {
     setErrors(result.errors);
     $('pipelineState').className = 'status error';
     $('pipelineState').textContent = 'BLOQUEADO';
+    $('processingMessage').textContent = 'Revisa los datos señalados para continuar.';
     return;
   }
   setErrors();
   $('pipelineState').className = 'status done';
   $('pipelineState').textContent = 'BORRADOR LISTO';
-  localStorage.setItem('plan_b_creator_draft', JSON.stringify({ author: result.story.author, title: result.story.title, story: $('story').value, savedAt: new Date().toISOString() }));
+  $('processingMessage').textContent = 'Tu historia está lista para revisar.';
+  localStorage.setItem('plan_b_creator_draft', JSON.stringify({
+    author: result.story.author, title: result.story.title, story: $('story').value,
+    characterName: result.story.character.name, characterDescription: result.story.character.description,
+    portraitSource: result.story.character.portraitSource, savedAt: new Date().toISOString()
+  }));
   generatedResult = result;
   renderPreview(result);
 });
@@ -286,6 +317,23 @@ $('loginBtn').addEventListener('click', sendMagicLink);
 $('logoutBtn').addEventListener('click', async () => { if (db) await db.auth.signOut(); });
 $('saveBtn').addEventListener('click', persistStory);
 
+document.querySelectorAll('input[name="portraitSource"]').forEach(input => input.addEventListener('change', event => {
+  $('portraitUpload').hidden = event.target.value !== 'upload';
+  $('aiPortraitNote').hidden = event.target.value !== 'ai';
+}));
+
+$('characterImage').addEventListener('change', event => {
+  characterImage = event.target.files[0] ?? null;
+  if (characterPreviewUrl) URL.revokeObjectURL(characterPreviewUrl);
+  characterPreviewUrl = characterImage ? URL.createObjectURL(characterImage) : null;
+  $('characterPreview').innerHTML = '';
+  if (!characterPreviewUrl) return;
+  const image = document.createElement('img');
+  image.src = characterPreviewUrl;
+  image.alt = 'Vista previa del personaje';
+  $('characterPreview').appendChild(image);
+});
+
 function restoreDraft() {
   try {
     const draft = JSON.parse(localStorage.getItem('plan_b_creator_draft'));
@@ -293,11 +341,20 @@ function restoreDraft() {
     $('author').value = draft.author ?? '';
     $('title').value = draft.title ?? '';
     $('story').value = draft.story ?? '';
+    $('characterName').value = draft.characterName ?? '';
+    $('characterDescription').value = draft.characterDescription ?? '';
+    if (draft.portraitSource) {
+      const option = document.querySelector(`input[name="portraitSource"][value="${draft.portraitSource}"]`);
+      if (option) {
+        option.checked = true;
+        $('portraitUpload').hidden = draft.portraitSource !== 'upload';
+        $('aiPortraitNote').hidden = draft.portraitSource !== 'ai';
+      }
+    }
     $('storyCount').textContent = $('story').value.length.toLocaleString('es-CL');
   } catch { localStorage.removeItem('plan_b_creator_draft'); }
 }
 
-renderAgentRoster();
 restoreDraft();
 if (db) {
   db.auth.getSession().then(({ data }) => { currentUser = data.session?.user ?? null; renderAuth(); loadSavedStories(); });
