@@ -1,0 +1,13 @@
+.character-help{margin:0;color:var(--muted);font:13px/1.5 system-ui,sans-serif}
+.characters-list{display:grid;gap:16px}
+.character-card{display:grid;gap:14px;padding:18px;border:1px solid var(--line);border-radius:16px;background:rgba(255,255,255,.55)}
+.character-card-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+.character-card-head span,.character-card-head small{color:var(--accent);font:700 10px/1.2 system-ui,sans-serif;letter-spacing:.12em}
+.character-card-head h3{margin:4px 0 0;font-size:19px}
+.character-card select{width:100%;padding:13px;border:1px solid var(--line);border-radius:10px;background:var(--paper2);color:inherit}
+.character-preview img{width:86px;height:86px;object-fit:cover;border-radius:50%}
+.add-character{justify-self:start}
+.character-preview-group{grid-column:1/-1;display:grid;gap:12px}
+.character-preview-group .character-preview-card{grid-column:auto}
+.character-preview-card small{display:block;margin-top:8px;color:#d5c0c9;font:12px/1.4 system-ui,sans-serif}
+@media(min-width:780px){.character-preview-group{grid-template-columns:repeat(2,minmax(0,1fr))}}
