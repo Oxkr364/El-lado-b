@@ -3,6 +3,17 @@ const $ = id => document.getElementById(id);
 const db = window.supabase?.createClient('https://bqrwcmrpzvtjoebmqiji.supabase.co', 'sb_publishable_XK4dh9Ch_7MebSMO7JJm7Q_8CXu2Qa8');
 let selectedImages = [], previewUrls = [], characters = [], currentUser = null, generatedResult = null;
 const createCharacter = (data = {}) => ({ id: crypto.randomUUID(), name: '', description: '', role: characters.length ? 'secondary' : 'protagonist', relationship: '', portraitSource: 'upload', image: null, previewUrl: null, ...data });
+const MAX_IMAGE_BYTES = 650 * 1024;
+async function compressImage(file) {
+  const bitmap = await createImageBitmap(file);
+  const scale = Math.min(1, 1600 / Math.max(bitmap.width, bitmap.height));
+  const canvas = document.createElement('canvas'); canvas.width = Math.max(1, Math.round(bitmap.width * scale)); canvas.height = Math.max(1, Math.round(bitmap.height * scale));
+  canvas.getContext('2d').drawImage(bitmap, 0, 0, canvas.width, canvas.height); bitmap.close();
+  let quality = .82, blob;
+  do { blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/webp', quality)); quality -= .08; } while (blob.size > MAX_IMAGE_BYTES && quality > .42);
+  if (!blob || blob.size > MAX_IMAGE_BYTES) throw new Error('La imagen no pudo comprimirse por debajo de 650 KB.');
+  return new File([blob], `${file.name.replace(/\.[^.]+$/, '')}.webp`, { type: 'image/webp', lastModified: Date.now() });
+}
 
 function setErrors(errors = []) {
   const box = $('formErrors'); box.hidden = !errors.length; box.innerHTML = ''; if (!errors.length) return;
@@ -28,7 +39,7 @@ function renderCharacters() {
     if (character.previewUrl) { const image = document.createElement('img'); image.src = character.previewUrl; image.alt = `Retrato de ${character.name || 'personaje'}`; card.querySelector('.character-preview').appendChild(image); }
     for (const [selector, key] of [['.character-name', 'name'], ['.character-description', 'description'], ['.character-role', 'role'], ['.character-relationship', 'relationship']]) card.querySelector(selector).addEventListener('input', event => { character[key] = event.target.value; });
     card.querySelectorAll('input[type="radio"]').forEach(input => input.addEventListener('change', event => { character.portraitSource = event.target.value; upload.hidden = character.portraitSource !== 'upload'; aiNote.hidden = character.portraitSource !== 'ai'; }));
-    card.querySelector('.character-image').addEventListener('change', event => { character.image = event.target.files[0] ?? null; if (character.previewUrl) URL.revokeObjectURL(character.previewUrl); character.previewUrl = character.image ? URL.createObjectURL(character.image) : null; renderCharacters(); });
+    card.querySelector('.character-image').addEventListener('change', async event => { try { character.image = event.target.files[0] ? await compressImage(event.target.files[0]) : null; if (character.previewUrl) URL.revokeObjectURL(character.previewUrl); character.previewUrl = character.image ? URL.createObjectURL(character.image) : null; renderCharacters(); } catch (error) { setErrors([error.message]); } });
     card.querySelector('.remove-character')?.addEventListener('click', () => { if (character.previewUrl) URL.revokeObjectURL(character.previewUrl); characters = characters.filter(item => item.id !== character.id); renderCharacters(); });
     list.appendChild(card);
   });
@@ -71,7 +82,7 @@ async function persistStory() {
 }
 
 $('addCharacterBtn').onclick = () => { if (characters.length < MAX_FREE_CHARACTERS) { characters.push(createCharacter()); renderCharacters(); } };
-$('images').onchange = event => { const incoming = [...event.target.files], remaining = MAX_FREE_IMAGES - selectedImages.length; selectedImages.push(...incoming.slice(0, Math.max(remaining, 0))); event.target.value = ''; renderImages(); };
+$('images').onchange = async event => { const incoming = [...event.target.files], remaining = MAX_FREE_IMAGES - selectedImages.length; event.target.value = ''; try { const compressed = await Promise.all(incoming.slice(0, Math.max(remaining, 0)).map(compressImage)); selectedImages.push(...compressed); renderImages(); } catch (error) { setErrors([error.message]); } };
 $('story').oninput = event => { $('storyCount').textContent = event.target.value.length.toLocaleString('es-CL'); };
 $('storyForm').onsubmit = async event => { event.preventDefault(); $('preview').hidden = true; const result = runStoryAgents({ author: $('author').value, title: $('title').value, story: $('story').value, consent: $('consent').checked, characters: characters.map(c => ({ name: c.name, description: c.description, role: c.role, relationship: c.relationship, portraitSource: c.portraitSource, portraitName: c.image?.name ?? '', portraitType: c.image?.type ?? '', portraitSize: c.image?.size ?? 0 })), images: selectedImages.map(file => ({ name: file.name, type: file.type, size: file.size })) }); await animateLog(result.log); if (!result.ok) { setErrors(result.errors); $('pipelineState').className = 'status error'; $('pipelineState').textContent = 'BLOQUEADO'; return; } setErrors(); $('pipelineState').className = 'status done'; $('pipelineState').textContent = 'BORRADOR LISTO'; $('processingMessage').textContent = 'Tu historia está lista para revisar.'; localStorage.setItem('plan_b_creator_draft', JSON.stringify({ author: result.story.author, title: result.story.title, story: $('story').value, characters: result.story.characters })); generatedResult = result; renderPreview(result); };
 $('loginBtn').onclick = sendMagicLink; $('logoutBtn').onclick = async () => db?.auth.signOut(); $('saveBtn').onclick = persistStory;
