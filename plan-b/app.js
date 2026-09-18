@@ -1,10 +1,96 @@
-const SUPABASE_URL='https://bqrwcmrpzvtjoebmqiji.supabase.co';const SUPABASE_KEY='sb_publishable_XK4dh9Ch_7MebSMO7JJm7Q_8CXu2Qa8';const{createClient}=window.supabase;const db=createClient(SUPABASE_URL,SUPABASE_KEY);
-const initialState={jose:{interesRomantico:0,confianza:0,temorAPerderPaz:0,tendenciaAlSilencio:0,iniciativa:0,comodidadConPaula:0,curiosidadPorPaula:0,conflictoInterno:0},paz:{confianzaEnJose:0,percepcionDelInteres:0,disponibilidadEmocional:0,iniciativa:0},paula:{interesPorJose:0,confianza:0,lecturaEmocional:0,cercania:0},relacion:{cercania:0,tension:0,comunicacion:0,clandestinidad:0,distancia:0,confianza:0},relacionPaula:{cercania:0,confianza:0,tension:0,posibilidad:0},memoria:{numeroSieteDigitos:false,llamadas:0,codigoSecreto:0,heridas:0,consejoPaula:0},meta:{steps:0}};
-let session=null,decisions=[],contexts=[],intents=[],current=0;const $=id=>document.getElementById(id);function deepMerge(t,d){for(const[k,v]of Object.entries(d||{})){if(v&&typeof v==='object'&&!Array.isArray(v))t[k]=deepMerge({...t[k]||{}},v);else t[k]=typeof v==='number'&&typeof t[k]==='number'?t[k]+v:v}return t}function getPath(o,p){return p.split('.').reduce((a,k)=>a?.[k],o)}function matches(state,condition){return Object.entries(condition||{}).every(([path,rules])=>{const v=getPath(state,path);return Object.entries(rules||{}).every(([op,x])=>op==='gte'?v>=x:op==='lte'?v<=x:op==='eq'?v===x:true)})}function contextFor(id){return contexts.filter(c=>c.decision_id===id&&matches(session?.state||initialState,c.condition)).sort((a,b)=>b.priority-a.priority)[0]||null}
-async function loadDecisions(){const[{data,error},{data:choices,error:ce},{data:ctx,error:xe},{data:ins,error:ie}]=await Promise.all([db.from('plan_b_decisions').select('id,chapter,title,summary,question,sort_order').order('sort_order'),db.from('plan_b_choices').select('id,decision_id,choice_code,choice_text,bridge_paragraph,state_delta,next_decision_id,next_passage').order('choice_code'),db.from('plan_b_contexts').select('decision_id,context_code,priority,condition,tension_text,contextual_question,narrative_intent'),db.from('plan_b_choice_intents').select('decision_id,choice_code,intent_label,action_label,psychological_axis')]);if(error)throw error;if(ce)throw ce;if(xe)throw xe;if(ie)throw ie;contexts=ctx||[];intents=ins||[];decisions=data.map(d=>({...d,choices:choices.filter(c=>c.decision_id===d.id)})).filter(d=>d.choices.length)}
-async function createSession(){const{data,error}=await db.from('plan_b_sessions').insert({state:initialState,current_decision_id:decisions[0].id,current_passage:'inicio',status:'active'}).select().single();if(error)throw error;session=data;localStorage.setItem('plan_b_session_id',session.id)}async function restoreSession(){const id=localStorage.getItem('plan_b_session_id');if(!id)return false;const{data,error}=await db.from('plan_b_sessions').select('*').eq('id',id).maybeSingle();if(error||!data||data.status==='completed')return false;session=data;current=Math.max(0,decisions.findIndex(d=>d.id===data.current_decision_id));return true}
-function renderDecision(){const d=decisions[current];if(!d)return renderClosure();const ctx=contextFor(d.id),step=session?.state?.meta?.steps??0;$('chapterLabel').textContent=`${d.chapter.replace('capitulo-','CAPÍTULO ')} · ${d.id}`;$('decisionTitle').textContent=d.title;$('summary').textContent=ctx?.tension_text||d.summary;$('question').textContent=ctx?.contextual_question||d.question;$('progressLabel').textContent=`Decisión ${step+1}`;$('progressBar').style.width=`${Math.min(100,((step+1)/9)*100)}%`;$('trajectoryCount').textContent=`${step} ${step===1?'decisión':'decisiones'}`;const box=$('choices');box.innerHTML='';d.choices.forEach(c=>{const intent=intents.find(i=>i.decision_id===d.id&&i.choice_code===c.choice_code),b=document.createElement('button');b.className='choice';b.innerHTML=`<span class="code">${c.choice_code}</span>${c.choice_text}${intent?`<small class="choice-intent">${intent.intent_label}</small>`:''}`;b.onclick=()=>choose(c);box.appendChild(b)})}
-async function choose(c){const before=structuredClone(session.state),after=deepMerge(structuredClone(session.state),c.state_delta);after.meta=after.meta||{};after.meta.steps=(before.meta?.steps||0)+1;const{error:ee}=await db.from('plan_b_decision_events').insert({session_id:session.id,decision_id:c.decision_id,choice_id:c.id,state_before:before,state_after:after,bridge_paragraph:c.bridge_paragraph});if(ee)return alert('No se pudo guardar esta decisión. Intenta nuevamente.');const next=decisions.findIndex(d=>d.id===c.next_decision_id),last=next===-1;const{data,error}=await db.from('plan_b_sessions').update({state:after,current_decision_id:last?null:c.next_decision_id,current_passage:c.next_passage,updated_at:new Date().toISOString(),status:last?'completed':'active',closure_code:last?({A:'mature_connection',B:'distance',C:'open_door'}[c.choice_code]||'open_door'):null}).eq('id',session.id).select().single();if(error)return alert('La decisión se guardó, pero no se pudo actualizar la trayectoria.');session=data;$('bridge').textContent=c.bridge_paragraph;$('development').classList.remove('hidden');$('choice-panel').classList.add('hidden');current=last?decisions.length:next}
-async function renderClosure(){const code=session.closure_code||'open_door';const{data,error}=await db.from('plan_b_closures').select('title,paragraph').eq('code',code).single();if(error)return alert('No se pudo cargar el cierre.');$('closureTitle').textContent=data.title;$('closureText').textContent=data.paragraph;$('closureCount').textContent=`${session?.state?.meta?.steps??0} decisiones tomadas`;$('reader').classList.add('hidden');$('closure').classList.remove('hidden')}
-async function renderCompleteStory(){const{data:events,error}=await db.from('plan_b_decision_events').select('decision_id,choice_id').eq('session_id',session.id).order('created_at');if(error)return alert('No se pudo reconstruir tu historia.');const ids=events.map(e=>e.choice_id),{data:choices,error:ce}=await db.from('plan_b_choices').select('id,decision_id,choice_code').in('id',ids);if(ce)return alert('No se pudo reconstruir tu historia.');const selected=events.map(e=>choices.find(c=>c.id===e.choice_id)).filter(Boolean),filters=selected.map(c=>`and(decision_id.eq.${c.decision_id},choice_code.eq.${c.choice_code})`).join(','),{data:frags,error:fe}=await db.from('plan_b_narrative_fragments').select('decision_id,choice_code,section_title,narrative_text,sort_order').or(filters);if(fe)return alert('No se pudo cargar la versión narrativa.');const map=new Map(frags.map(f=>[`${f.decision_id}:${f.choice_code}`,f]));$('storyBody').innerHTML=selected.map(c=>{const f=map.get(`${c.decision_id}:${c.choice_code}`);return f?`<article class="story-section"><h3>${f.section_title}</h3><p>${f.narrative_text}</p></article>`:''}).join('');const{data:cl}=await db.from('plan_b_closures').select('title,paragraph').eq('code',session.closure_code||'open_door').single();$('storyEpilogue').innerHTML=cl?`<span>EPÍLOGO</span><strong>${cl.title}</strong><p>${cl.paragraph}</p>`:'';$('closure').classList.add('hidden');$('completeStory').classList.remove('hidden');window.scrollTo({top:0,behavior:'smooth'})}
-async function start(){try{await loadDecisions();const restored=await restoreSession();if(!restored)await createSession();$('intro').classList.add('hidden');$('reader').classList.remove('hidden');$('development').classList.add('hidden');$('choice-panel').classList.remove('hidden');renderDecision()}catch(e){console.error(e);alert('Plan B no pudo conectarse con su memoria narrativa. Revisa la configuración de Supabase.')}}$('startBtn').onclick=start;$('continueBtn').onclick=()=>{$('development').classList.add('hidden');if(current>=decisions.length)return renderClosure();$('choice-panel').classList.remove('hidden');renderDecision();window.scrollTo({top:0,behavior:'smooth'})};$('readStoryBtn').onclick=renderCompleteStory;$('backClosureBtn').onclick=()=>{$('completeStory').classList.add('hidden');$('closure').classList.remove('hidden');window.scrollTo({top:0,behavior:'smooth'})};$('restartBtn').onclick=()=>{localStorage.removeItem('plan_b_session_id');$('closure').classList.add('hidden');$('completeStory').classList.add('hidden');$('intro').classList.remove('hidden');session=null;current=0};
+import { PLAN_B_LIMITS, createPlanBReaderSession, directorPlanB, buildPlanBOutcome } from './agents/plan-b-network.js';
+import { reviewSafety } from './agents/runtime.js';
+
+const $ = id => document.getElementById(id);
+const STORAGE_KEY = 'el_lado_b_reader_network_v2';
+const blueprint = {
+  title: 'El Lado B',
+  limits: PLAN_B_LIMITS,
+  branches: [
+    { id: 'branch-1', position: 1, title: 'La primera mirada', context: 'En el gimnasio de 1998, José descubre que mirar a Paz ya no se parece del todo a mirar a una amiga. Todavía no existe una historia entre ellos; apenas una posibilidad.', questions: [{ id: 'branch-1-a', text: '¿Qué decide hacer José cuando reconoce que está sintiendo algo distinto?' }, { id: 'branch-1-b', text: '¿Qué decide ocultar o revelar José en ese primer instante?' }] },
+    { id: 'branch-2', position: 2, title: 'El naranjo', context: 'En la fiesta, Paz pregunta quién es Nadia. La pregunta parece pequeña, pero permite que los celos entren por primera vez en el lenguaje secreto de ambos.', questions: [{ id: 'branch-2-a', text: '¿Cómo responde José a la pregunta de Paz?' }, { id: 'branch-2-b', text: '¿Qué hace Paz después de escuchar la respuesta de José?' }] },
+    { id: 'branch-3', position: 3, title: 'La distancia cambia', context: 'Una invitación aparentemente sencilla modifica el límite entre amistad e intimidad. Ambos comprenden que permanecer cerca también puede tener consecuencias.', questions: [{ id: 'branch-3-a', text: '¿Qué límite decide conservar o cruzar José?' }, { id: 'branch-3-b', text: '¿Qué necesita decir Paz antes de que la noche termine?' }] },
+    { id: 'branch-4', position: 4, title: 'Los siete dígitos', context: 'Paz entrega a José el número de la red fija de su casa y le pide que no pierdan la comunicación. El papel puede convertirse en recuerdo, promesa o acción.', questions: [{ id: 'branch-4-a', text: '¿Qué decide hacer José con el número de teléfono?' }, { id: 'branch-4-b', text: '¿Qué espera realmente Paz cuando le entrega el número?' }] },
+    { id: 'branch-5', position: 5, title: 'Lo que todavía puede decirse', context: 'Después de los reencuentros y los silencios, ambos deben decidir si la memoria seguirá siendo escondite o se convertirá en una conversación verdadera.', questions: [{ id: 'branch-5-a', text: '¿Qué verdad decide decir José antes de que sea demasiado tarde?' }, { id: 'branch-5-b', text: '¿Qué respuesta decide darle Paz para cerrar o abrir esta historia?' }] }
+  ]
+};
+
+let session = null;
+let selectedQuestionId = null;
+
+function saveSession() { localStorage.setItem(STORAGE_KEY, JSON.stringify(session)); }
+function restoreSession() { try { const stored = JSON.parse(localStorage.getItem(STORAGE_KEY)); return stored?.status === 'active' && stored?.blueprint?.branches?.length === PLAN_B_LIMITS.branches ? stored : null; } catch { return null; } }
+
+function renderBranch() {
+  const branch = session.blueprint.branches[session.current];
+  if (!branch) return renderClosure();
+  selectedQuestionId = null;
+  $('chapterLabel').textContent = `RAMA ${branch.position} · CAPA 1`;
+  $('decisionTitle').textContent = branch.title;
+  $('summary').textContent = branch.context;
+  $('progressLabel').textContent = `Rama ${branch.position} de ${PLAN_B_LIMITS.branches}`;
+  $('progressBar').style.width = `${(branch.position / PLAN_B_LIMITS.branches) * 100}%`;
+  $('trajectoryCount').textContent = `${session.responses.length} ${session.responses.length === 1 ? 'respuesta' : 'respuestas'}`;
+  $('choices').innerHTML = '';
+  branch.questions.forEach((question, index) => {
+    const button = document.createElement('button');
+    button.type = 'button'; button.className = 'choice'; button.dataset.questionId = question.id;
+    button.innerHTML = `<span class="code">${index + 1}</span><span>${question.text}</span>`;
+    button.onclick = () => selectQuestion(question);
+    $('choices').appendChild(button);
+  });
+  $('responseForm').classList.add('hidden'); $('readerResponse').value = ''; $('responseCount').textContent = '0';
+  $('development').classList.add('hidden'); $('choice-panel').classList.remove('hidden');
+}
+
+function selectQuestion(question) {
+  selectedQuestionId = question.id;
+  document.querySelectorAll('.choice').forEach(button => button.classList.toggle('selected', button.dataset.questionId === question.id));
+  $('selectedQuestion').textContent = question.text;
+  $('responseForm').classList.remove('hidden');
+  $('readerResponse').focus();
+}
+
+function submitResponse(event) {
+  event.preventDefault();
+  const response = $('readerResponse').value.trim();
+  const safetyErrors = reviewSafety(response);
+  if (safetyErrors.length) return alert(safetyErrors.join('\n'));
+  try {
+    const branch = session.blueprint.branches[session.current];
+    session = directorPlanB(session, { branchId: branch.id, questionId: selectedQuestionId, response });
+    saveSession();
+    const latest = session.actions.at(-1);
+    $('bridge').textContent = latest.bridge;
+    $('trajectoryCount').textContent = `${session.responses.length} ${session.responses.length === 1 ? 'respuesta' : 'respuestas'}`;
+    $('choice-panel').classList.add('hidden'); $('development').classList.remove('hidden');
+    $('continueBtn').innerHTML = session.status === 'completed' ? 'DESCUBRIR MI DESENLACE <span>→</span>' : 'SEGUIR LEYENDO <span>→</span>';
+  } catch (error) { alert(error.message); }
+}
+
+function renderClosure() {
+  const outcome = buildPlanBOutcome(session);
+  $('closureTitle').textContent = 'Tus cinco respuestas encontraron un camino.';
+  $('closureText').textContent = outcome.epilogue;
+  $('closureCount').textContent = `${outcome.responseCount} respuestas · ${PLAN_B_LIMITS.branches * PLAN_B_LIMITS.questionsPerBranch} preguntas posibles`;
+  $('reader').classList.add('hidden'); $('closure').classList.remove('hidden');
+}
+
+function renderCompleteStory() {
+  const outcome = buildPlanBOutcome(session);
+  $('storyBody').innerHTML = '';
+  outcome.sections.forEach(section => { const article = document.createElement('article'), title = document.createElement('h3'), text = document.createElement('p'); article.className = 'story-section'; title.textContent = section.title; text.textContent = section.text; article.append(title, text); $('storyBody').appendChild(article); });
+  $('storyEpilogue').innerHTML = '';
+  const label = document.createElement('span'), title = document.createElement('strong'), text = document.createElement('p'); label.textContent = 'EPÍLOGO'; title.textContent = 'La historia posible'; text.textContent = outcome.epilogue; $('storyEpilogue').append(label, title, text);
+  $('closure').classList.add('hidden'); $('completeStory').classList.remove('hidden'); window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function start() { session = restoreSession() || createPlanBReaderSession(blueprint); $('intro').classList.add('hidden'); $('reader').classList.remove('hidden'); renderBranch(); }
+
+$('startBtn').onclick = start;
+$('responseForm').onsubmit = submitResponse;
+$('readerResponse').oninput = event => { $('responseCount').textContent = event.target.value.length; };
+$('continueBtn').onclick = () => { $('development').classList.add('hidden'); if (session.status === 'completed') return renderClosure(); $('choice-panel').classList.remove('hidden'); renderBranch(); window.scrollTo({ top: 0, behavior: 'smooth' }); };
+$('readStoryBtn').onclick = renderCompleteStory;
+$('backClosureBtn').onclick = () => { $('completeStory').classList.add('hidden'); $('closure').classList.remove('hidden'); window.scrollTo({ top: 0, behavior: 'smooth' }); };
+$('restartBtn').onclick = () => { localStorage.removeItem(STORAGE_KEY); session = null; selectedQuestionId = null; $('closure').classList.add('hidden'); $('completeStory').classList.add('hidden'); $('reader').classList.add('hidden'); $('intro').classList.remove('hidden'); };
