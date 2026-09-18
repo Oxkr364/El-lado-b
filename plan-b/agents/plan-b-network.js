@@ -1,4 +1,8 @@
 export const PLAN_B_LIMITS = Object.freeze({ branches: 5, questionsPerBranch: 2, responses: 5 });
+export const PLAN_B_PROFILES = Object.freeze({
+  initial: PLAN_B_LIMITS,
+  prototype: Object.freeze({ branches: 10, questionsPerBranch: 3, responses: 10 })
+});
 
 const clean = value => String(value ?? '').replace(/\s+/g, ' ').trim();
 const sentence = value => { const text = clean(value); return text ? `${text[0].toUpperCase()}${text.slice(1).replace(/[.!?]+$/, '')}.` : ''; };
@@ -21,15 +25,17 @@ function readPulse(text) {
   return delta;
 }
 
-function linkNextQuestions(branch, action, pulse) {
+function linkNextQuestions(branch, action, pulse, questionCount) {
   const dominant = dominantPulse(pulse), secondary = PULSE_KEYS.filter(key => key !== dominant).sort((a, b) => pulse[b] - pulse[a])[0];
   const remembered = action.action.replace(/[.!?]+$/, '').slice(0, 120);
+  const questions = [
+    { id: branch.questions[0]?.id ?? `${branch.id}-a`, text: `Después de que ${remembered[0].toLocaleLowerCase('es')}${remembered.slice(1)}, ¿qué decisión protege su ${PULSE_LABELS[dominant]}?` },
+    { id: branch.questions[1]?.id ?? `${branch.id}-b`, text: `¿Qué tendría que hacer ahora para que su ${PULSE_LABELS[secondary]} no contradiga lo que acaba de decidir?` },
+    { id: branch.questions[2]?.id ?? `${branch.id}-c`, text: `¿Qué consecuencia está dispuesto a aceptar para sostener lo que acaba de cambiar?` }
+  ].slice(0, questionCount);
   return {
     ...branch,
-    questions: [
-      { id: branch.questions[0]?.id ?? `${branch.id}-a`, text: `Después de que ${remembered[0].toLocaleLowerCase('es')}${remembered.slice(1)}, ¿qué decisión protege su ${PULSE_LABELS[dominant]}?` },
-      { id: branch.questions[1]?.id ?? `${branch.id}-b`, text: `¿Qué tendría que hacer ahora para que su ${PULSE_LABELS[secondary]} no contradiga lo que acaba de decidir?` }
-    ],
+    questions,
     pulseSource: { dominant, secondary }
   };
 }
@@ -53,9 +59,10 @@ export function buildPlanBBlueprint({ title, sections, protagonist = 'el protago
 }
 
 export function createPlanBReaderSession(blueprint) {
-  const branches = (blueprint?.branches ?? []).slice(0, PLAN_B_LIMITS.branches).map(branch => ({ ...branch, questions: (branch.questions ?? []).slice(0, PLAN_B_LIMITS.questionsPerBranch) }));
-  if (branches.some(branch => branch.questions.length !== PLAN_B_LIMITS.questionsPerBranch)) throw new Error('Cada rama necesita exactamente dos preguntas alternativas.');
-  return { id: globalThis.crypto?.randomUUID?.() ?? `plan-b-${Date.now()}`, blueprint: { ...blueprint, branches }, current: 0, responses: [], actions: [], continuity: { facts: [], lastAction: '', thread: [], pulse: { desire: 0, fear: 0, bond: 0, wound: 0, hope: 0 }, pulseHistory: [] }, status: 'active' };
+  const limits = { ...PLAN_B_LIMITS, ...(blueprint?.limits ?? {}) };
+  const branches = (blueprint?.branches ?? []).slice(0, limits.branches).map(branch => ({ ...branch, questions: (branch.questions ?? []).slice(0, limits.questionsPerBranch) }));
+  if (branches.some(branch => branch.questions.length !== limits.questionsPerBranch)) throw new Error(`Cada rama necesita exactamente ${limits.questionsPerBranch} preguntas alternativas.`);
+  return { id: globalThis.crypto?.randomUUID?.() ?? `plan-b-${Date.now()}`, blueprint: { ...blueprint, limits, branches }, current: 0, responses: [], actions: [], continuity: { facts: [], lastAction: '', thread: [], pulse: { desire: 0, fear: 0, bond: 0, wound: 0, hope: 0 }, pulseHistory: [] }, status: 'active' };
 }
 
 export function actionAgent(response) {
@@ -88,19 +95,20 @@ export function continuityAgent(session, branch, question, action) {
 }
 
 export function directorPlanB(session, { branchId, questionId, response }) {
+  const limits = session.blueprint.limits ?? PLAN_B_LIMITS;
   if (session.status !== 'active') throw new Error('Este Plan B ya fue cerrado.');
-  if (session.responses.length >= PLAN_B_LIMITS.responses) throw new Error('Se alcanzó el límite de cinco respuestas.');
+  if (session.responses.length >= limits.responses) throw new Error(`Se alcanzó el límite de ${limits.responses} respuestas.`);
   const branch = session.blueprint.branches[session.current];
   if (!branch || branch.id !== branchId) throw new Error('La respuesta no pertenece a la rama activa.');
   const question = branch.questions.find(item => item.id === questionId);
-  if (!question) throw new Error('Elige una de las dos preguntas de esta rama.');
+  if (!question) throw new Error(`Elige una de las ${limits.questionsPerBranch} preguntas de esta rama.`);
   if (session.responses.some(item => item.branchId === branchId)) throw new Error('Esta rama ya tiene una respuesta.');
   const action = actionAgent(response);
   const continuity = continuityAgent(session, branch, question, action);
   const next = session.current + 1;
-  const completed = next >= session.blueprint.branches.length || session.responses.length + 1 >= PLAN_B_LIMITS.responses;
+  const completed = next >= session.blueprint.branches.length || session.responses.length + 1 >= limits.responses;
   const branches = session.blueprint.branches.slice();
-  if (!completed && branches[next]) branches[next] = linkNextQuestions(branches[next], action, continuity.pulse);
+  if (!completed && branches[next]) branches[next] = linkNextQuestions(branches[next], action, continuity.pulse, limits.questionsPerBranch);
   return {
     ...session,
     blueprint: { ...session.blueprint, branches },
