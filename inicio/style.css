@@ -1,0 +1,1 @@
+$(await tools.exec_command({cmd:"cat inicio/style.css",workdir:"/workspace/scratch/1a44388c6d78/plan-b",yield_time_ms:10000,max_output_tokens:10000})).output
