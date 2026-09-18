@@ -45,7 +45,9 @@ export function runStoryAgents(input) {
   const log = [];
   const title = normalizeText(input.title);
   const story = normalizeText(input.story);
-  const author = normalizeText(input.author) || 'Autor anónimo';
+  const author = normalizeText(input.author);
+  const synopsis = normalizeText(input.synopsis);
+  const modules = { album: Boolean(input.modules?.album), planB: Boolean(input.modules?.planB) };
   const images = Array.isArray(input.images) ? input.images : [];
   const sourceCharacters = Array.isArray(input.characters) ? input.characters : (input.character ? [input.character] : []);
   const characters = sourceCharacters.map((item, index) => ({
@@ -64,7 +66,9 @@ export function runStoryAgents(input) {
     { source: 'user_story', canonMutation: false }));
 
   const editorialErrors = [];
+  if (author.length < 2) editorialErrors.push('Ingresa el nombre del autor o un seudónimo.');
   if (title.length < 3) editorialErrors.push('El título debe tener al menos 3 caracteres.');
+  if (synopsis.length < 30) editorialErrors.push('La reseña debe tener al menos 30 caracteres.');
   if (story.length < 80) editorialErrors.push('El relato debe tener al menos 80 caracteres.');
   if (characters.length > MAX_FREE_CHARACTERS) editorialErrors.push(`La edición gratuita admite hasta ${MAX_FREE_CHARACTERS} personajes.`);
   if (!characters.length) editorialErrors.push('Agrega al menos un personaje protagonista.');
@@ -80,11 +84,13 @@ export function runStoryAgents(input) {
     `El relato quedó organizado en ${rawSections.length} fragmentos narrativos.`,
     { type: 'textual', destination: 'user_plan_b', sections: rawSections.length }));
 
-  const tension = rawSections.length > 1
-    ? 'La historia cambia entre sus fragmentos y admite una progresión.'
-    : 'La historia funciona como una memoria breve y continua.';
-  log.push(event('friccion', 'ok', 'friccion_detectada', tension,
-    { scope: rawSections.length > 2 ? 'progressive' : 'local', sectionCount: rawSections.length }));
+  if (modules.planB) {
+    const tension = rawSections.length > 1
+      ? 'La historia cambia entre sus fragmentos y admite una progresión.'
+      : 'La historia funciona como una memoria breve y continua.';
+    log.push(event('friccion', 'ok', 'friccion_detectada', tension,
+      { scope: rawSections.length > 2 ? 'progressive' : 'local', sectionCount: rawSections.length }));
+  }
 
   const pages = rawSections.map((text, index) => ({
     id: `page-${index + 1}`, position: index + 1, title: index === 0 ? title : `Fragmento ${index + 1}`,
@@ -122,7 +128,7 @@ export function runStoryAgents(input) {
   log.push(event('planificador', 'ok', 'tarea_planificada', 'La ejecución quedó dividida en cuatro operaciones.', { plan }));
 
   const generated = {
-    id: globalThis.crypto?.randomUUID?.() ?? `story-${Date.now()}`, slug: safeSlug(title), title, author,
+    id: globalThis.crypto?.randomUUID?.() ?? `story-${Date.now()}`, slug: safeSlug(title), title, author, synopsis, modules,
     status: 'draft', visibility: 'private', plan: 'free', imageLimit: MAX_FREE_IMAGES,
     characterLimit: MAX_FREE_CHARACTERS, pageLimit: MAX_FREE_PAGES,
     imageCount: images.length, characters, character: characters[0], pages, createdAt: new Date().toISOString()
