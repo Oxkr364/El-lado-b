@@ -2,7 +2,7 @@ import { PLAN_B_LIMITS, createPlanBReaderSession, directorPlanB, buildPlanBOutco
 import { reviewSafety } from './agents/runtime.js';
 
 const $ = id => document.getElementById(id);
-const STORAGE_KEY = 'el_lado_b_reader_network_v2';
+const STORAGE_KEY = 'el_lado_b_reader_network_v3';
 const blueprint = {
   title: 'El Lado B',
   limits: PLAN_B_LIMITS,
@@ -62,6 +62,7 @@ function submitResponse(event) {
     saveSession();
     const latest = session.actions.at(-1);
     $('bridge').textContent = latest.bridge;
+    $('pulseReading').textContent = latest.emotionalReading;
     $('trajectoryCount').textContent = `${session.responses.length} ${session.responses.length === 1 ? 'respuesta' : 'respuestas'}`;
     $('choice-panel').classList.add('hidden'); $('development').classList.remove('hidden');
     $('continueBtn').innerHTML = session.status === 'completed' ? 'DESCUBRIR MI DESENLACE <span>→</span>' : 'SEGUIR LEYENDO <span>→</span>';
@@ -72,7 +73,7 @@ function renderClosure() {
   const outcome = buildPlanBOutcome(session);
   $('closureTitle').textContent = 'Tus cinco respuestas encontraron un camino.';
   $('closureText').textContent = outcome.epilogue;
-  $('closureCount').textContent = `${outcome.responseCount} respuestas · ${PLAN_B_LIMITS.branches * PLAN_B_LIMITS.questionsPerBranch} preguntas posibles`;
+  $('closureCount').textContent = `${outcome.responseCount} respuestas · pulso dominante: ${outcome.pulse.label}`;
   $('reader').classList.add('hidden'); $('closure').classList.remove('hidden');
 }
 
