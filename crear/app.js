@@ -1,8 +1,8 @@
 import { MAX_FREE_IMAGES, MAX_FREE_CHARACTERS, runStoryAgents } from '../plan-b/agents/runtime.js';
 const $ = id => document.getElementById(id);
 const db = window.supabase?.createClient('https://bqrwcmrpzvtjoebmqiji.supabase.co', 'sb_publishable_XK4dh9Ch_7MebSMO7JJm7Q_8CXu2Qa8');
-let selectedImages = [], previewUrls = [], characters = [], currentUser = null, generatedResult = null;
-const createCharacter = (data = {}) => ({ id: crypto.randomUUID(), name: '', description: '', role: characters.length ? 'secondary' : 'protagonist', relationship: '', portraitSource: 'upload', image: null, previewUrl: null, ...data });
+let selectedImages = [], previewUrls = [], characters = [], currentUser = null, generatedResult = null, coverImage = null, coverPreviewUrl = null;
+const createCharacter = (data = {}) => ({ id: crypto.randomUUID(), name: '', description: '', role: characters.length ? 'secondary' : 'protagonist', relationship: '', portraitSource: 'none', image: null, previewUrl: null, ...data });
 const MAX_IMAGE_BYTES = 650 * 1024;
 async function compressImage(file) {
   const bitmap = await createImageBitmap(file);
@@ -19,6 +19,36 @@ function setErrors(errors = []) {
   const box = $('formErrors'); box.hidden = !errors.length; box.innerHTML = ''; if (!errors.length) return;
   const title = document.createElement('strong'); title.textContent = 'Antes de continuar:';
   const list = document.createElement('ul'); errors.forEach(message => { const item = document.createElement('li'); item.textContent = message; list.appendChild(item); }); box.append(title, list);
+}
+
+function updateConsentVisibility() {
+  const needsConsent = Boolean(coverImage || selectedImages.length || characters.some(character => character.image));
+  $('consentRow').hidden = !needsConsent;
+  if (!needsConsent) $('consent').checked = false;
+}
+
+function setStoryText(text, fileName = '') {
+  $('story').value = text.slice(0, 12000);
+  $('storyCount').textContent = $('story').value.length.toLocaleString('es-CL');
+  $('storyFileName').hidden = !fileName;
+  $('storyFileName').textContent = fileName ? `Texto cargado desde: ${fileName}` : '';
+}
+
+async function loadStoryFile(file) {
+  if (!file) return;
+  if (!/\.(txt|md)$/i.test(file.name) && !['text/plain', 'text/markdown'].includes(file.type)) throw new Error('El archivo de la historia debe ser TXT o Markdown.');
+  setStoryText(await file.text(), file.name);
+}
+
+function renderCover() {
+  const source = document.querySelector('input[name="coverSource"]:checked')?.value ?? 'ai';
+  $('coverUpload').hidden = source !== 'upload';
+  $('coverPromptLabel').hidden = source !== 'ai';
+  $('coverPreview').innerHTML = '';
+  if (source === 'upload' && coverPreviewUrl) {
+    const image = document.createElement('img'); image.src = coverPreviewUrl; image.alt = 'Vista previa de la portada'; $('coverPreview').appendChild(image);
+  }
+  updateConsentVisibility();
 }
 
 function renderCharacters() {
@@ -39,8 +69,8 @@ function renderCharacters() {
     if (character.previewUrl) { const image = document.createElement('img'); image.src = character.previewUrl; image.alt = `Retrato de ${character.name || 'personaje'}`; card.querySelector('.character-preview').appendChild(image); }
     for (const [selector, key] of [['.character-name', 'name'], ['.character-description', 'description'], ['.character-role', 'role'], ['.character-relationship', 'relationship']]) card.querySelector(selector).addEventListener('input', event => { character[key] = event.target.value; });
     card.querySelectorAll('input[type="radio"]').forEach(input => input.addEventListener('change', event => { character.portraitSource = event.target.value; upload.hidden = character.portraitSource !== 'upload'; aiNote.hidden = character.portraitSource !== 'ai'; }));
-    card.querySelector('.character-image').addEventListener('change', async event => { try { character.image = event.target.files[0] ? await compressImage(event.target.files[0]) : null; if (character.previewUrl) URL.revokeObjectURL(character.previewUrl); character.previewUrl = character.image ? URL.createObjectURL(character.image) : null; renderCharacters(); } catch (error) { setErrors([error.message]); } });
-    card.querySelector('.remove-character')?.addEventListener('click', () => { if (character.previewUrl) URL.revokeObjectURL(character.previewUrl); characters = characters.filter(item => item.id !== character.id); renderCharacters(); });
+    card.querySelector('.character-image').addEventListener('change', async event => { try { character.image = event.target.files[0] ? await compressImage(event.target.files[0]) : null; if (character.previewUrl) URL.revokeObjectURL(character.previewUrl); character.previewUrl = character.image ? URL.createObjectURL(character.image) : null; renderCharacters(); updateConsentVisibility(); } catch (error) { setErrors([error.message]); } });
+    card.querySelector('.remove-character')?.addEventListener('click', () => { if (character.previewUrl) URL.revokeObjectURL(character.previewUrl); characters = characters.filter(item => item.id !== character.id); renderCharacters(); updateConsentVisibility(); });
     list.appendChild(card);
   });
   $('addCharacterBtn').disabled = characters.length >= MAX_FREE_CHARACTERS; $('addCharacterBtn').textContent = characters.length >= MAX_FREE_CHARACTERS ? 'LÍMITE GRATUITO: 4 PERSONAJES' : '＋ AÑADIR OTRO PERSONAJE';
@@ -50,12 +80,14 @@ function renderImages() {
   previewUrls.forEach(URL.revokeObjectURL); previewUrls = []; $('imageGrid').innerHTML = '';
   selectedImages.forEach((file, index) => { const url = URL.createObjectURL(file); previewUrls.push(url); const card = document.createElement('figure'), image = document.createElement('img'), caption = document.createElement('figcaption'), remove = document.createElement('button'); image.src = url; image.alt = `Fotografía ${index + 1}: ${file.name}`; caption.textContent = `${index + 1}. ${file.name}`; remove.type = 'button'; remove.textContent = 'Quitar'; remove.onclick = () => { selectedImages.splice(index, 1); renderImages(); }; card.append(image, caption, remove); $('imageGrid').appendChild(card); });
   $('imageCount').textContent = `${selectedImages.length} de ${MAX_FREE_IMAGES} gratis`;
+  updateConsentVisibility();
 }
 
 async function animateLog(log) { $('pipelineState').className = 'status working'; $('pipelineState').textContent = 'PREPARANDO TU HISTORIA'; for (const message of ['Leyendo tu relato…', 'Organizando los recuerdos…', 'Preparando los personajes…', 'Construyendo la vista previa…']) { $('processingMessage').textContent = message; await new Promise(resolve => setTimeout(resolve, Math.max(180, log.length * 24))); } }
 
 function renderPreview(result) {
-  const story = result.story, pages = $('previewPages'); $('previewTitle').textContent = story.title; $('previewMeta').textContent = `Por ${story.author} · ${story.pages.length} páginas · ${story.imageCount} fotografías · ${story.characters.length} personajes`; pages.innerHTML = '';
+  const story = result.story, pages = $('previewPages'); $('previewTitle').textContent = story.title; const experiences = ['lectura']; if (story.modules.album) experiences.push('álbum'); if (story.modules.planB) experiences.push('Plan B'); $('previewMeta').textContent = `Por ${story.author} · ${story.pages.length} páginas · ${story.characters.length} personajes · ${experiences.join(' + ')}`; pages.innerHTML = '';
+  const proposal = document.createElement('article'); proposal.className = 'work-proposal'; proposal.innerHTML = `<span>ESTA OBRA PROPONE</span><h3>${story.synopsis}</h3><p>${story.modules.planB ? 'Conoce primero la historia original y después interviene en sus momentos decisivos.' : story.modules.album ? 'Lee la historia y recorre también su álbum visual.' : 'Una experiencia de lectura centrada en la historia original.'}</p>`; pages.appendChild(proposal);
   const group = document.createElement('section'); group.className = 'character-preview-group';
   story.characters.forEach((character, index) => { const card = document.createElement('article'), portrait = document.createElement('div'), copy = document.createElement('div'), label = document.createElement('span'), name = document.createElement('h3'), description = document.createElement('p'); card.className = 'character-preview-card'; portrait.className = 'character-portrait'; if (characters[index]?.previewUrl) { const image = document.createElement('img'); image.src = characters[index].previewUrl; image.alt = `Retrato de ${character.name}`; portrait.appendChild(image); } else portrait.textContent = character.name.slice(0, 1).toUpperCase(); label.textContent = character.role === 'protagonist' ? 'PROTAGONISTA' : character.role === 'coprotagonist' ? 'COPROTAGONISTA' : 'PERSONAJE SECUNDARIO'; name.textContent = character.name; description.textContent = character.description; copy.append(label, name, description); if (character.relationship) { const relation = document.createElement('small'); relation.textContent = character.relationship; copy.appendChild(relation); } card.append(portrait, copy); group.appendChild(card); }); pages.appendChild(group);
   story.pages.forEach(page => { const article = document.createElement('article'), number = document.createElement('span'), title = document.createElement('h3'), text = document.createElement('p'); number.textContent = String(page.position).padStart(2, '0'); title.textContent = page.title; text.textContent = page.text; article.append(number); if (page.imageIndex !== null && previewUrls[page.imageIndex]) { const image = document.createElement('img'); image.src = previewUrls[page.imageIndex]; image.alt = `Fotografía asociada a ${page.title}`; article.appendChild(image); } article.append(title, text); pages.appendChild(article); });
@@ -84,9 +116,17 @@ async function persistStory() {
 $('addCharacterBtn').onclick = () => { if (characters.length < MAX_FREE_CHARACTERS) { characters.push(createCharacter()); renderCharacters(); } };
 $('images').onchange = async event => { const incoming = [...event.target.files], remaining = MAX_FREE_IMAGES - selectedImages.length; event.target.value = ''; try { const compressed = await Promise.all(incoming.slice(0, Math.max(remaining, 0)).map(compressImage)); selectedImages.push(...compressed); renderImages(); } catch (error) { setErrors([error.message]); } };
 $('story').oninput = event => { $('storyCount').textContent = event.target.value.length.toLocaleString('es-CL'); };
-$('storyForm').onsubmit = async event => { event.preventDefault(); $('preview').hidden = true; const result = runStoryAgents({ author: $('author').value, title: $('title').value, story: $('story').value, consent: $('consent').checked, characters: characters.map(c => ({ name: c.name, description: c.description, role: c.role, relationship: c.relationship, portraitSource: c.portraitSource, portraitName: c.image?.name ?? '', portraitType: c.image?.type ?? '', portraitSize: c.image?.size ?? 0 })), images: selectedImages.map(file => ({ name: file.name, type: file.type, size: file.size })) }); await animateLog(result.log); if (!result.ok) { setErrors(result.errors); $('pipelineState').className = 'status error'; $('pipelineState').textContent = 'BLOQUEADO'; return; } setErrors(); $('pipelineState').className = 'status done'; $('pipelineState').textContent = 'BORRADOR LISTO'; $('processingMessage').textContent = 'Tu historia está lista para revisar.'; localStorage.setItem('plan_b_creator_draft', JSON.stringify({ author: result.story.author, title: result.story.title, story: $('story').value, characters: result.story.characters })); generatedResult = result; renderPreview(result); };
+$('storyFile').onchange = async event => { try { await loadStoryFile(event.target.files[0]); setErrors(); } catch (error) { setErrors([error.message]); } event.target.value = ''; };
+for (const eventName of ['dragenter', 'dragover']) $('storyDropzone').addEventListener(eventName, event => { event.preventDefault(); $('storyDropzone').classList.add('dragging'); });
+for (const eventName of ['dragleave', 'drop']) $('storyDropzone').addEventListener(eventName, event => { event.preventDefault(); $('storyDropzone').classList.remove('dragging'); });
+$('storyDropzone').addEventListener('drop', async event => { try { await loadStoryFile(event.dataTransfer.files[0]); setErrors(); } catch (error) { setErrors([error.message]); } });
+document.querySelectorAll('input[name="coverSource"]').forEach(input => input.onchange = renderCover);
+$('coverImage').onchange = async event => { try { coverImage = event.target.files[0] ? await compressImage(event.target.files[0]) : null; if (coverPreviewUrl) URL.revokeObjectURL(coverPreviewUrl); coverPreviewUrl = coverImage ? URL.createObjectURL(coverImage) : null; renderCover(); } catch (error) { setErrors([error.message]); } };
+$('enableAlbum').onchange = event => { $('albumFields').hidden = !event.target.checked; if (!event.target.checked) { selectedImages = []; renderImages(); } };
+$('suggestSynopsisBtn').onclick = () => { const text = $('story').value.trim(); if (!text) return setErrors(['Carga o pega el texto antes de solicitar una reseña.']); const suggestion = text.replace(/\s+/g, ' ').slice(0, 260).replace(/\s+\S*$/, ''); $('synopsis').value = `${suggestion}${suggestion.length < text.length ? '…' : ''}`; setErrors(); };
+$('storyForm').onsubmit = async event => { event.preventDefault(); $('preview').hidden = true; const coverSource = document.querySelector('input[name="coverSource"]:checked')?.value; const preflight = []; if ($('author').value.trim().length < 2) preflight.push('Ingresa el nombre del autor o un seudónimo.'); if ($('synopsis').value.trim().length < 30) preflight.push('La reseña debe tener al menos 30 caracteres.'); if (coverSource === 'upload' && !coverImage) preflight.push('Selecciona una portada o elige crearla con IA.'); if (coverSource === 'ai' && !$('title').value.trim()) preflight.push('La portada con IA necesita el título de la obra.'); if (preflight.length) return setErrors(preflight); const result = runStoryAgents({ author: $('author').value, title: $('title').value, synopsis: $('synopsis').value, story: $('story').value, cover: { source: coverSource, prompt: $('coverPrompt').value, name: coverImage?.name ?? '' }, modules: { album: $('enableAlbum').checked, planB: $('enablePlanB').checked }, consent: $('consent').checked, characters: characters.map(c => ({ name: c.name, description: c.description, role: c.role, relationship: c.relationship, portraitSource: c.portraitSource, portraitName: c.image?.name ?? '', portraitType: c.image?.type ?? '', portraitSize: c.image?.size ?? 0 })), images: selectedImages.map(file => ({ name: file.name, type: file.type, size: file.size })) }); await animateLog(result.log); if (!result.ok) { setErrors(result.errors); $('pipelineState').className = 'status error'; $('pipelineState').textContent = 'REVISAR DATOS'; return; } setErrors(); $('pipelineState').className = 'status done'; $('pipelineState').textContent = 'BORRADOR LISTO'; $('processingMessage').textContent = 'Tu obra está lista para revisar.'; localStorage.setItem('plan_b_creator_draft', JSON.stringify({ author: result.story.author, title: result.story.title, synopsis: result.story.synopsis, story: $('story').value, characters: result.story.characters, modules: result.story.modules })); generatedResult = result; renderPreview(result); };
 $('loginBtn').onclick = sendMagicLink; $('logoutBtn').onclick = async () => db?.auth.signOut(); $('saveBtn').onclick = persistStory;
 
-try { const draft = JSON.parse(localStorage.getItem('plan_b_creator_draft')); $('author').value = draft?.author ?? ''; $('title').value = draft?.title ?? ''; $('story').value = draft?.story ?? ''; characters = draft?.characters?.length ? draft.characters.map(item => createCharacter({ ...item, image: null, previewUrl: null })) : [createCharacter()]; } catch { characters = [createCharacter()]; }
-$('storyCount').textContent = $('story').value.length.toLocaleString('es-CL'); renderCharacters();
+try { const draft = JSON.parse(localStorage.getItem('plan_b_creator_draft')); $('author').value = draft?.author ?? ''; $('title').value = draft?.title ?? ''; $('synopsis').value = draft?.synopsis ?? ''; $('story').value = draft?.story ?? ''; $('enableAlbum').checked = Boolean(draft?.modules?.album); $('enablePlanB').checked = Boolean(draft?.modules?.planB); $('albumFields').hidden = !$('enableAlbum').checked; characters = draft?.characters?.length ? draft.characters.map(item => createCharacter({ ...item, image: null, previewUrl: null })) : [createCharacter()]; } catch { characters = [createCharacter()]; }
+$('storyCount').textContent = $('story').value.length.toLocaleString('es-CL'); renderCharacters(); renderCover(); updateConsentVisibility();
 if (db) { db.auth.getSession().then(({ data }) => { currentUser = data.session?.user ?? null; renderAuth(); loadSavedStories(); }); db.auth.onAuthStateChange((_event, session) => { currentUser = session?.user ?? null; renderAuth(); loadSavedStories(); }); } else setErrors(['No fue posible iniciar la conexión segura.']);
