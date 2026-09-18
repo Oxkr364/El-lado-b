@@ -4,6 +4,7 @@ const MAX_FREE_PAGES = 40;
 const MAX_IMAGE_BYTES = 650 * 1024;
 
 export const AGENTS = Object.freeze({
+  seguridad: { name: 'Seguridad editorial', role: 'Protege a lectores y autores' },
   canon: { name: 'Canon', role: 'Protege la fuente original' },
   editor: { name: 'Editor', role: 'Ordena el material narrativo' },
   friccion: { name: 'Fricción', role: 'Detecta el punto que mueve la historia' },
@@ -41,6 +42,22 @@ function failure(log, agent, result, detail, errors) {
   return { ok: false, status: 'blocked', errors, log };
 }
 
+const SAFETY_RULES = Object.freeze({
+  violence: /(?:asesin(?:ar|ato|ó)|matar|mató|degollar|decapitar|desmembrar|mutilar|torturar|apuñalar|acuchillar|disparar|balazo|golpear\s+hasta|sangre\s+derramada|cadáver\s+mutilado)/iu,
+  explicitSex: /(?:penetr(?:ar|ación)|sexo\s+explícito|acto\s+sexual|genitales|eyacul(?:ar|ación)|orgasmo|masturb(?:ar|ación)|pornograf(?:ía|ico|ica))/iu,
+  sexualViolence: /(?:violación|violar|abuso\s+sexual|agresión\s+sexual|sexo\s+forzado)/iu,
+  minors: /(?:niñ[oa]|menor|adolescente).{0,80}(?:sexo|sexual|desnud[oa]|erótic[oa]|íntim[oa])|(?:sexo|sexual|desnud[oa]|erótic[oa]|íntim[oa]).{0,80}(?:niñ[oa]|menor|adolescente)/iu
+});
+
+function reviewSafety(text) {
+  const violations = [];
+  if (SAFETY_RULES.violence.test(text)) violations.push('La obra contiene violencia no permitida por las reglas editoriales.');
+  if (SAFETY_RULES.explicitSex.test(text)) violations.push('La obra contiene sexualidad explícita. Solo admitimos contenido adulto sugerido, no gráfico.');
+  if (SAFETY_RULES.sexualViolence.test(text)) violations.push('La obra contiene violencia sexual, contenido no permitido.');
+  if (SAFETY_RULES.minors.test(text)) violations.push('La obra relaciona contenido sexual con menores, lo que está prohibido.');
+  return [...new Set(violations)];
+}
+
 export function runStoryAgents(input) {
   const log = [];
   const title = normalizeText(input.title);
@@ -48,6 +65,8 @@ export function runStoryAgents(input) {
   const author = normalizeText(input.author);
   const synopsis = normalizeText(input.synopsis);
   const modules = { album: Boolean(input.modules?.album), planB: Boolean(input.modules?.planB) };
+  const genre = normalizeText(input.genre) || 'general';
+  const adultConfirmed = Boolean(input.adultConfirmed);
   const images = Array.isArray(input.images) ? input.images : [];
   const sourceCharacters = Array.isArray(input.characters) ? input.characters : (input.character ? [input.character] : []);
   const characters = sourceCharacters.map((item, index) => ({
@@ -77,6 +96,12 @@ export function runStoryAgents(input) {
     if (character.description.length < 20) editorialErrors.push(`Describe al personaje ${index + 1} con al menos 20 caracteres.`);
   });
   if (editorialErrors.length) return failure(log, 'editor', 'material_incompleto', 'Falta material para construir una historia.', editorialErrors);
+
+  if (genre === 'adult_sensual' && !adultConfirmed) return failure(log, 'seguridad', 'edad_sin_confirmar', 'La clasificación adulta necesita confirmación.', ['Confirma que eres mayor de 18 años para publicar una obra sensual para adultos.']);
+  const safetyText = [title, synopsis, story, ...characters.flatMap(character => [character.name, character.description, character.relationship])].join('\n');
+  const safetyErrors = reviewSafety(safetyText);
+  if (safetyErrors.length) return failure(log, 'seguridad', 'contenido_bloqueado', 'La obra no cumple las reglas editoriales.', safetyErrors);
+  log.push(event('seguridad', 'ok', genre === 'adult_sensual' ? 'aprobada_mayores_18' : 'aprobada', genre === 'adult_sensual' ? 'La obra fue aprobada como contenido sensual no explícito para mayores de 18 años.' : 'La obra cumple las reglas editoriales de publicación.', { rating: genre === 'adult_sensual' ? '18+' : 'general', violenceAllowed: false, explicitSexAllowed: false }));
 
   const rawSections = splitStory(story);
   if (rawSections.length > MAX_FREE_PAGES) return failure(log, 'editor', 'limite_paginas', `La edición gratuita admite hasta ${MAX_FREE_PAGES} páginas.`, [`Reduce el relato a ${MAX_FREE_PAGES} páginas o menos.`]);
@@ -128,7 +153,8 @@ export function runStoryAgents(input) {
   log.push(event('planificador', 'ok', 'tarea_planificada', 'La ejecución quedó dividida en cuatro operaciones.', { plan }));
 
   const generated = {
-    id: globalThis.crypto?.randomUUID?.() ?? `story-${Date.now()}`, slug: safeSlug(title), title, author, synopsis, modules,
+    id: globalThis.crypto?.randomUUID?.() ?? `story-${Date.now()}`, slug: safeSlug(title), title, author, synopsis, modules, genre,
+    ageRating: genre === 'adult_sensual' ? '18+' : 'general', safetyStatus: 'approved',
     status: 'draft', visibility: 'private', plan: 'free', imageLimit: MAX_FREE_IMAGES,
     characterLimit: MAX_FREE_CHARACTERS, pageLimit: MAX_FREE_PAGES,
     imageCount: images.length, characters, character: characters[0], pages, createdAt: new Date().toISOString()
