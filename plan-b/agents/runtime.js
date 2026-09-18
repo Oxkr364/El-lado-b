@@ -1,3 +1,5 @@
+import { buildPlanBBlueprint, PLAN_B_LIMITS } from './plan-b-network.js';
+
 const MAX_FREE_IMAGES = 5;
 const MAX_FREE_CHARACTERS = 4;
 const MAX_FREE_PAGES = 40;
@@ -5,6 +7,9 @@ const MAX_IMAGE_BYTES = 650 * 1024;
 
 export const AGENTS = Object.freeze({
   seguridad: { name: 'Seguridad editorial', role: 'Protege a lectores y autores' },
+  directorPlanB: { name: 'Director de Plan B', role: 'Coordina las cinco ramas' },
+  accion: { name: 'Acción', role: 'Convierte cada respuesta en una acción narrativa' },
+  continuidad: { name: 'Continuidad', role: 'Mantiene la lógica entre las dos capas' },
   canon: { name: 'Canon', role: 'Protege la fuente original' },
   editor: { name: 'Editor', role: 'Ordena el material narrativo' },
   friccion: { name: 'Fricción', role: 'Detecta el punto que mueve la historia' },
@@ -49,7 +54,7 @@ const SAFETY_RULES = Object.freeze({
   minors: /(?:niñ[oa]|menor|adolescente).{0,80}(?:sexo|sexual|desnud[oa]|erótic[oa]|íntim[oa])|(?:sexo|sexual|desnud[oa]|erótic[oa]|íntim[oa]).{0,80}(?:niñ[oa]|menor|adolescente)/iu
 });
 
-function reviewSafety(text) {
+export function reviewSafety(text) {
   const violations = [];
   if (SAFETY_RULES.violence.test(text)) violations.push('La obra contiene violencia no permitida por las reglas editoriales.');
   if (SAFETY_RULES.explicitSex.test(text)) violations.push('La obra contiene sexualidad explícita. Solo admitimos contenido adulto sugerido, no gráfico.');
@@ -115,6 +120,8 @@ export function runStoryAgents(input) {
       : 'La historia funciona como una memoria breve y continua.';
     log.push(event('friccion', 'ok', 'friccion_detectada', tension,
       { scope: rawSections.length > 2 ? 'progressive' : 'local', sectionCount: rawSections.length }));
+    const blueprint = buildPlanBBlueprint({ title, sections: rawSections, protagonist: characters[0]?.name || 'el protagonista' });
+    log.push(event('directorPlanB', 'ok', 'red_plan_b_preparada', `Se prepararon ${blueprint.branches.length} ramas con dos preguntas alternativas por rama.`, { limits: PLAN_B_LIMITS, blueprint }));
   }
 
   const pages = rawSections.map((text, index) => ({
@@ -155,6 +162,7 @@ export function runStoryAgents(input) {
   const generated = {
     id: globalThis.crypto?.randomUUID?.() ?? `story-${Date.now()}`, slug: safeSlug(title), title, author, synopsis, modules, genre,
     ageRating: genre === 'adult_sensual' ? '18+' : 'general', safetyStatus: 'approved',
+    planBBlueprint: modules.planB ? buildPlanBBlueprint({ title, sections: rawSections, protagonist: characters[0]?.name || 'el protagonista' }) : null,
     status: 'draft', visibility: 'private', plan: 'free', imageLimit: MAX_FREE_IMAGES,
     characterLimit: MAX_FREE_CHARACTERS, pageLimit: MAX_FREE_PAGES,
     imageCount: images.length, characters, character: characters[0], pages, createdAt: new Date().toISOString()
