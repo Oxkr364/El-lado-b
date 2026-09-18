@@ -1,4 +1,5 @@
-.cover-fieldset,.story-source,.modules-fieldset{display:grid;gap:14px;padding:19px;border:1px solid var(--line);border-radius:18px;background:rgba(255,255,255,.28)}
+.cover-fieldset,.story-source,.modules-fieldset,.safety-fieldset{display:grid;gap:14px;padding:19px;border:1px solid var(--line);border-radius:18px;background:rgba(255,255,255,.28)}
+.safety-fieldset select{display:block;width:100%;margin-top:8px;padding:14px 15px;border:1px solid var(--line);border-radius:14px;background:var(--paper2);color:var(--ink);font:16px/1.4 'Libre Baskerville',serif}.safety-note{margin:0;padding:13px 15px;border-left:3px solid var(--accent);border-radius:8px;background:#fff3f7;color:#604651;font:12px/1.55 system-ui,sans-serif}
 .choice-grid,.module-options{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
 .choice-grid label,.module-options label{position:relative;cursor:pointer}.choice-grid input,.module-options input{position:absolute;opacity:0;pointer-events:none}
 .choice-grid span,.module-options span{display:grid;gap:5px;height:100%;padding:16px;border:1px solid var(--line);border-radius:14px;background:var(--paper2)}
@@ -10,4 +11,4 @@
 .file-status{margin:0;padding:10px 12px;border-radius:10px;background:#edf7f1;color:#315e46;font:12px/1.4 system-ui,sans-serif}.inline-action{display:inline-block;margin-top:7px}
 .visually-hidden{position:absolute!important;width:1px!important;height:1px!important;padding:0!important;margin:-1px!important;overflow:hidden!important;clip:rect(0,0,0,0)!important;white-space:nowrap!important;border:0!important}
 .work-proposal{grid-column:1/-1!important;background:#fff7fa!important;border-color:#e5b7c8!important}.work-proposal h3{font-size:24px!important;line-height:1.45}.work-proposal p{color:var(--muted)}
-@media(max-width:620px){.choice-grid,.module-options{grid-template-columns:1fr}.cover-fieldset,.story-source,.modules-fieldset{padding:15px}}
+@media(max-width:620px){.choice-grid,.module-options{grid-template-columns:1fr}.cover-fieldset,.story-source,.modules-fieldset,.safety-fieldset{padding:15px}}
