@@ -53,14 +53,29 @@ const SAFETY_RULES = Object.freeze({
   sexualViolence: /(?:violación|violar|abuso\s+sexual|agresión\s+sexual|sexo\s+forzado)/iu,
   minors: /(?:niñ[oa]|menor|adolescente).{0,80}(?:sexo|sexual|desnud[oa]|erótic[oa]|íntim[oa])|(?:sexo|sexual|desnud[oa]|erótic[oa]|íntim[oa]).{0,80}(?:niñ[oa]|menor|adolescente)/iu
 });
+const SAFETY_MESSAGES = Object.freeze({
+  violence: 'Posible violencia no permitida por las reglas editoriales.',
+  explicitSex: 'Posible sexualidad explícita. Solo admitimos contenido adulto sugerido, no gráfico.',
+  sexualViolence: 'Posible violencia sexual, contenido no permitido.',
+  minors: 'Posible relación entre contenido sexual y menores, lo que está prohibido.'
+});
+
+function safetyExcerpt(text, match) {
+  const start = Math.max(0, match.index - 55), end = Math.min(text.length, match.index + match[0].length + 55);
+  const prefix = start > 0 ? '…' : '', suffix = end < text.length ? '…' : '';
+  return `${prefix}${text.slice(start, end).replace(/\s+/g, ' ').trim()}${suffix}`;
+}
+
+export function reviewSafetyFindings(text) {
+  const source = String(text ?? '');
+  return Object.entries(SAFETY_RULES).flatMap(([rule, pattern]) => {
+    const match = pattern.exec(source);
+    return match ? [{ rule, message: SAFETY_MESSAGES[rule], phrase: match[0], excerpt: safetyExcerpt(source, match), index: match.index }] : [];
+  });
+}
 
 export function reviewSafety(text) {
-  const violations = [];
-  if (SAFETY_RULES.violence.test(text)) violations.push('La obra contiene violencia no permitida por las reglas editoriales.');
-  if (SAFETY_RULES.explicitSex.test(text)) violations.push('La obra contiene sexualidad explícita. Solo admitimos contenido adulto sugerido, no gráfico.');
-  if (SAFETY_RULES.sexualViolence.test(text)) violations.push('La obra contiene violencia sexual, contenido no permitido.');
-  if (SAFETY_RULES.minors.test(text)) violations.push('La obra relaciona contenido sexual con menores, lo que está prohibido.');
-  return [...new Set(violations)];
+  return reviewSafetyFindings(text).map(finding => `${finding.message} Frase observada: “${finding.excerpt}”`);
 }
 
 export function runStoryAgents(input) {
