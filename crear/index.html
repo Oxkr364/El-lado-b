@@ -32,6 +32,12 @@
           <label>Autor o autora <small>obligatorio</small><input id="author" name="author" autocomplete="name" required minlength="2" maxlength="80" placeholder="Tu nombre o seudónimo"></label>
           <label>Título de la historia<input id="title" name="title" required minlength="3" maxlength="100" placeholder="El día que todo cambió"></label>
         </div>
+        <fieldset class="safety-fieldset">
+          <legend>Clasificación editorial <span>obligatoria</span></legend>
+          <label>Género de la obra<select id="genre" name="genre" required><option value="general">Narrativa general</option><option value="romance">Romance</option><option value="mystery">Misterio</option><option value="fantasy">Fantasía</option><option value="science_fiction">Ciencia ficción</option><option value="historical">Histórica</option><option value="memoir">Memoria</option><option value="children">Infantil</option><option value="adult_sensual">Romance adulto / Sensual +18</option></select></label>
+          <p class="safety-note">No se admite violencia, sexualidad explícita ni contenido sexual relacionado con menores. Las obras sensuales solo pueden sugerir la intimidad entre adultos.</p>
+          <label id="adultConfirmation" class="consent" hidden><input id="adultConfirmed" type="checkbox"><span>Confirmo que soy mayor de 18 años y que los personajes involucrados en contenido sensual también son adultos.</span></label>
+        </fieldset>
         <fieldset class="cover-fieldset">
           <legend>Portada <span>obligatoria</span></legend>
           <div class="choice-grid" role="radiogroup" aria-label="Origen de la portada">
