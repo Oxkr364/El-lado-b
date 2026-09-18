@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <meta name="theme-color" content="#100e14">
   <title>Crea tu historia — El Lado B</title>
-  <meta name="description" content="Convierte tu relato y hasta cinco fotografías en un Plan B privado.">
+  <meta name="description" content="Carga tu obra, presenta sus personajes y decide si tendrá álbum o una experiencia Plan B.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;600&family=Libre+Baskerville:wght@400;700&family=Special+Elite&display=swap" rel="stylesheet">
@@ -13,13 +13,14 @@
   <link rel="stylesheet" href="./auth.css">
   <link rel="stylesheet" href="./characters.css">
   <link rel="stylesheet" href="./characters-multi.css">
+  <link rel="stylesheet" href="./creator-flow.css">
 </head>
 <body>
   <div class="grain" aria-hidden="true"></div>
   <header class="topbar"><a class="brand" href="../inicio/">EL LADO B</a><span>LABORATORIO DE HISTORIAS</span></header>
   <main>
     <section class="editor" aria-labelledby="pageTitle">
-      <div class="intro-copy"><p class="eyebrow">CREA TU PLAN B</p><h1 id="pageTitle">Tu historia comienza aquí.</h1><p>Escribe el recuerdo, agrega hasta cinco fotografías y observa cómo trabajan los agentes. El resultado permanece privado hasta que tú decidas enviarlo.</p></div>
+      <div class="intro-copy"><p class="eyebrow">PUBLICA TU OBRA</p><h1 id="pageTitle">Tu historia comienza aquí.</h1><p>Carga el texto, presenta a sus personajes y elige la experiencia que quieres ofrecer. Tu obra permanecerá privada hasta que decidas publicarla.</p></div>
       <section class="identity" aria-labelledby="identityTitle">
         <div><p class="eyebrow">TU ESPACIO PRIVADO</p><h2 id="identityTitle">Crea primero. Guarda cuando esté listo.</h2><p id="authStatus">Puedes generar una vista previa sin iniciar sesión.</p></div>
         <div id="authForm" class="auth-form"><label>Correo electrónico<input id="email" type="email" autocomplete="email" placeholder="tu@correo.cl"></label><button id="loginBtn" class="ghost" type="button">ENVIAR ENLACE DE ACCESO</button></div>
@@ -28,24 +29,48 @@
       </section>
       <form id="storyForm" novalidate>
         <div class="field-grid">
-          <label>Autor o autora<input id="author" name="author" autocomplete="name" maxlength="80" placeholder="Tu nombre"></label>
+          <label>Autor o autora <small>obligatorio</small><input id="author" name="author" autocomplete="name" required minlength="2" maxlength="80" placeholder="Tu nombre o seudónimo"></label>
           <label>Título de la historia<input id="title" name="title" required minlength="3" maxlength="100" placeholder="El día que todo cambió"></label>
         </div>
+        <fieldset class="cover-fieldset">
+          <legend>Portada <span>obligatoria</span></legend>
+          <div class="choice-grid" role="radiogroup" aria-label="Origen de la portada">
+            <label><input type="radio" name="coverSource" value="upload"><span><strong>Subir mi portada</strong><small>JPG, PNG o WebP.</small></span></label>
+            <label><input type="radio" name="coverSource" value="ai" checked><span><strong>Crear portada con IA</strong><small>Usará el título, la reseña y tus indicaciones.</small></span></label>
+          </div>
+          <div id="coverUpload" hidden><label class="dropzone compact" for="coverImage"><strong>Arrastra o selecciona la portada</strong><span>La imagen se comprimirá automáticamente.</span><input id="coverImage" type="file" accept="image/jpeg,image/png,image/webp"></label><div id="coverPreview" class="cover-preview"></div></div>
+          <label id="coverPromptLabel">Indicaciones para la portada <small>opcional</small><textarea id="coverPrompt" rows="3" maxlength="600" placeholder="Ambiente, época, colores o elementos que imaginas. No escribas texto dentro de la imagen."></textarea></label>
+        </fieldset>
+        <label>Reseña de la obra <small>obligatoria</small><textarea id="synopsis" name="synopsis" required minlength="30" maxlength="700" rows="4" placeholder="Una presentación breve que invite a entrar en la obra."></textarea><button id="suggestSynopsisBtn" class="text-button inline-action" type="button">SUGERIR DESDE EL TEXTO</button></label>
         <fieldset class="character-fieldset">
           <legend>Personajes <span>hasta 4 gratis</span></legend>
-          <p class="character-help">El protagonista es obligatorio. Puedes sumar hasta tres coprotagonistas o personajes secundarios. Sus retratos no consumen tus cinco imágenes.</p>
+          <p class="character-help">Debes presentar al menos al protagonista. Puedes sumar hasta tres personajes más. Las imágenes de los personajes son opcionales y no consumen las imágenes del álbum.</p>
           <div id="charactersList" class="characters-list"></div>
           <button id="addCharacterBtn" class="ghost add-character" type="button">＋ AÑADIR OTRO PERSONAJE</button>
         </fieldset>
-        <label>Ingresa tu historia <small>máximo 40 páginas</small><textarea id="story" name="story" required minlength="80" maxlength="12000" rows="10" placeholder="Cuenta lo que ocurrió con tus propias palabras. Los agentes pueden ordenar el material, pero no inventarán hechos para llenar los vacíos."></textarea><span class="counter"><b id="storyCount">0</b> / 12.000 caracteres</span></label>
-        <fieldset>
-          <legend>Fotografías <span id="imageCount">0 de 5 gratis</span></legend>
+        <fieldset class="story-source">
+          <legend>Texto de la obra <span>obligatorio · máximo 40 páginas</span></legend>
+          <label id="storyDropzone" class="dropzone" for="storyFile"><strong>Arrastra tu historia aquí</strong><span>o selecciona un archivo TXT o Markdown</span><input id="storyFile" type="file" accept=".txt,.md,text/plain,text/markdown"></label>
+          <div class="source-divider"><span>o copia y pega</span></div>
+          <label class="visually-hidden" for="story">Texto de la obra</label><textarea id="story" name="story" required minlength="80" maxlength="12000" rows="12" placeholder="Pega aquí el texto completo de tu obra."></textarea><span class="counter"><b id="storyCount">0</b> / 12.000 caracteres</span>
+          <p id="storyFileName" class="file-status" hidden></p>
+        </fieldset>
+        <fieldset class="modules-fieldset">
+          <legend>Experiencia de la obra <span>opcional</span></legend>
+          <p class="character-help">La lectura siempre estará disponible. Tú decides si quieres sumar estas experiencias.</p>
+          <div class="module-options">
+            <label><input id="enableAlbum" type="checkbox"><span><strong>Álbum visual</strong><small>Una pequeña colección de imágenes dentro de la obra.</small></span></label>
+            <label><input id="enablePlanB" type="checkbox"><span><strong>Plan B interactivo</strong><small>El lector podrá intervenir en momentos decisivos y transformar la historia.</small></span></label>
+          </div>
+        </fieldset>
+        <fieldset id="albumFields" hidden>
+          <legend>Álbum visual <span id="imageCount">0 de 5 gratis</span></legend>
           <label class="dropzone" for="images"><strong>Agregar fotografías</strong><span>JPG, PNG o WebP. Puedes quitar antes de generar.</span><input id="images" type="file" accept="image/jpeg,image/png,image/webp" multiple></label>
           <div id="imageGrid" class="image-grid" aria-live="polite"></div>
         </fieldset>
-        <label class="consent"><input id="consent" type="checkbox"><span>Declaro que tengo autorización para utilizar las fotografías seleccionadas.</span></label>
+        <label id="consentRow" class="consent" hidden><input id="consent" type="checkbox"><span>Declaro que tengo autorización para utilizar las imágenes seleccionadas.</span></label>
         <div id="formErrors" class="errors" role="alert" hidden></div>
-        <div class="actions"><button id="generateBtn" class="primary" type="submit">DAR VIDA A LOS AGENTES <span>→</span></button><span class="privacy">Borrador privado · publicación manual</span></div>
+        <div class="actions"><button id="generateBtn" class="primary" type="submit">PREPARAR VISTA PREVIA <span>→</span></button><span class="privacy">Borrador privado · publicación manual</span></div>
       </form>
     </section>
     <section id="processing" class="processing" aria-live="polite"><span id="pipelineState" class="status idle">LISTO PARA COMENZAR</span><p id="processingMessage">Cuéntanos tu historia y prepararemos el borrador.</p></section>
