@@ -1,17 +1,24 @@
-import { PLAN_B_LIMITS, createPlanBReaderSession, directorPlanB, buildPlanBOutcome } from './agents/plan-b-network.js';
+import { PLAN_B_PROFILES, createPlanBReaderSession, directorPlanB, buildPlanBOutcome } from './agents/plan-b-network.js';
 import { reviewSafety } from './agents/runtime.js';
 
 const $ = id => document.getElementById(id);
-const STORAGE_KEY = 'el_lado_b_reader_network_v3';
+const PROTOTYPE_LIMITS = PLAN_B_PROFILES.prototype;
+const STORAGE_KEY = 'el_lado_b_reader_network_prototype_v1';
+const makeBranch = (position, title, context, questions) => ({ id: `branch-${position}`, position, title, context, questions: questions.map((text, index) => ({ id: `branch-${position}-${String.fromCharCode(97 + index)}`, text })) });
 const blueprint = {
   title: 'El Lado B',
-  limits: PLAN_B_LIMITS,
+  limits: PROTOTYPE_LIMITS,
   branches: [
-    { id: 'branch-1', position: 1, title: 'La primera mirada', context: 'En el gimnasio de 1998, José descubre que mirar a Paz ya no se parece del todo a mirar a una amiga. Todavía no existe una historia entre ellos; apenas una posibilidad.', questions: [{ id: 'branch-1-a', text: '¿Qué decide hacer José cuando reconoce que está sintiendo algo distinto?' }, { id: 'branch-1-b', text: '¿Qué decide ocultar o revelar José en ese primer instante?' }] },
-    { id: 'branch-2', position: 2, title: 'El naranjo', context: 'En la fiesta, Paz pregunta quién es Nadia. La pregunta parece pequeña, pero permite que los celos entren por primera vez en el lenguaje secreto de ambos.', questions: [{ id: 'branch-2-a', text: '¿Cómo responde José a la pregunta de Paz?' }, { id: 'branch-2-b', text: '¿Qué hace Paz después de escuchar la respuesta de José?' }] },
-    { id: 'branch-3', position: 3, title: 'La distancia cambia', context: 'Una invitación aparentemente sencilla modifica el límite entre amistad e intimidad. Ambos comprenden que permanecer cerca también puede tener consecuencias.', questions: [{ id: 'branch-3-a', text: '¿Qué límite decide conservar o cruzar José?' }, { id: 'branch-3-b', text: '¿Qué necesita decir Paz antes de que la noche termine?' }] },
-    { id: 'branch-4', position: 4, title: 'Los siete dígitos', context: 'Paz entrega a José el número de la red fija de su casa y le pide que no pierdan la comunicación. El papel puede convertirse en recuerdo, promesa o acción.', questions: [{ id: 'branch-4-a', text: '¿Qué decide hacer José con el número de teléfono?' }, { id: 'branch-4-b', text: '¿Qué espera realmente Paz cuando le entrega el número?' }] },
-    { id: 'branch-5', position: 5, title: 'Lo que todavía puede decirse', context: 'Después de los reencuentros y los silencios, ambos deben decidir si la memoria seguirá siendo escondite o se convertirá en una conversación verdadera.', questions: [{ id: 'branch-5-a', text: '¿Qué verdad decide decir José antes de que sea demasiado tarde?' }, { id: 'branch-5-b', text: '¿Qué respuesta decide darle Paz para cerrar o abrir esta historia?' }] }
+    makeBranch(1, 'La primera mirada', 'En el gimnasio de 1998, José descubre que mirar a Paz ya no se parece del todo a mirar a una amiga. Todavía no existe una historia entre ellos; apenas una posibilidad.', ['¿Qué decide hacer José cuando reconoce que está sintiendo algo distinto?', '¿Qué decide ocultar o revelar José en ese primer instante?', '¿Qué riesgo está dispuesto a aceptar para acercarse a Paz?']),
+    makeBranch(2, 'El naranjo', 'En la fiesta, Paz pregunta quién es Nadia. La pregunta parece pequeña, pero permite que los celos entren por primera vez en el lenguaje secreto de ambos.', ['¿Cómo responde José a la pregunta de Paz?', '¿Qué hace Paz después de escuchar la respuesta de José?', '¿Qué cambia entre ambos después de esa conversación?']),
+    makeBranch(3, 'La moneda y el sillón', 'Una invitación aparentemente sencilla modifica el límite entre amistad e intimidad. Ambos comprenden que permanecer cerca también puede tener consecuencias.', ['¿Qué límite decide conservar o cruzar José?', '¿Qué necesita decir Paz antes de que la noche termine?', '¿Qué consecuencia emocional acepta cada uno después de esa cercanía?']),
+    makeBranch(4, 'La grieta de septiembre', 'Paz cuenta que está conociendo a otra persona. José descubre el costo de haber protegido durante años la máscara de amigo.', ['¿José rompe el silencio o protege la amistad?', '¿Qué necesita escuchar Paz para comprenderlo?', '¿Qué distancia decide tomar José para no desaparecer de sí mismo?']),
+    makeBranch(5, 'Los siete dígitos', 'Paz entrega a José el número de la red fija de su casa y le pide que no pierdan la comunicación. El papel puede convertirse en recuerdo, promesa o acción.', ['¿Qué decide hacer José con el número de teléfono?', '¿Qué espera realmente Paz cuando le entrega el número?', '¿Qué tendría que vencer José antes de realizar la llamada?']),
+    makeBranch(6, 'La geometría del desvelo', 'En el reencuentro del año 2000, la distancia está llena de recuerdos que los demás no pueden leer. El idioma secreto todavía funciona.', ['¿José continúa hablando mediante señales o decide ser claro?', '¿Qué interpreta Paz en el silencio de José?', '¿Qué lugar ocupa Paula en esta nueva geometría emocional?']),
+    makeBranch(7, 'La llamada de 2001', 'José encuentra el papel, llama a la casa y ambos vuelven a encontrarse. La rutina parece regresar, pero ya no son los mismos.', ['¿Qué busca realmente José al volver a llamar?', '¿Qué necesita comprobar Paz antes de confiar nuevamente?', '¿Qué parte del pasado deciden dejar atrás?']),
+    makeBranch(8, 'La pregunta difícil', 'Una conversación sobre responsabilidad obliga a ambos a imaginar un futuro que ninguno había pronunciado de manera directa.', ['¿Desde qué lugar emocional responde José?', '¿Qué verdad necesita Paz detrás de su respuesta?', '¿Qué compromiso puede asumir José sin prometer lo imposible?']),
+    makeBranch(9, 'Cuando quiero que estés', 'Paz expresa la ausencia que más le duele: cuando necesita que José esté, él no está. Ya no basta con explicar las intenciones.', ['¿José se defiende o reconoce el daño?', '¿Qué reparación estaría dispuesta a aceptar Paz?', '¿Qué acción concreta puede demostrar que esta vez comprendió?']),
+    makeBranch(10, 'Lo que todavía puede decirse', 'Después de los reencuentros y los silencios, ambos deben decidir si la memoria seguirá siendo escondite o se convertirá en una conversación verdadera.', ['¿Qué verdad decide decir José antes de que sea demasiado tarde?', '¿Qué respuesta decide darle Paz para cerrar o abrir esta historia?', '¿Qué deben conservar aunque el desenlace los lleve por caminos distintos?'])
   ]
 };
 
@@ -19,7 +26,7 @@ let session = null;
 let selectedQuestionId = null;
 
 function saveSession() { localStorage.setItem(STORAGE_KEY, JSON.stringify(session)); }
-function restoreSession() { try { const stored = JSON.parse(localStorage.getItem(STORAGE_KEY)); return stored?.status === 'active' && stored?.blueprint?.branches?.length === PLAN_B_LIMITS.branches ? stored : null; } catch { return null; } }
+function restoreSession() { try { const stored = JSON.parse(localStorage.getItem(STORAGE_KEY)); return stored?.status === 'active' && stored?.blueprint?.branches?.length === PROTOTYPE_LIMITS.branches ? stored : null; } catch { return null; } }
 
 function renderBranch() {
   const branch = session.blueprint.branches[session.current];
@@ -28,8 +35,8 @@ function renderBranch() {
   $('chapterLabel').textContent = `RAMA ${branch.position} · CAPA 1`;
   $('decisionTitle').textContent = branch.title;
   $('summary').textContent = branch.context;
-  $('progressLabel').textContent = `Rama ${branch.position} de ${PLAN_B_LIMITS.branches}`;
-  $('progressBar').style.width = `${(branch.position / PLAN_B_LIMITS.branches) * 100}%`;
+  $('progressLabel').textContent = `Rama ${branch.position} de ${PROTOTYPE_LIMITS.branches}`;
+  $('progressBar').style.width = `${(branch.position / PROTOTYPE_LIMITS.branches) * 100}%`;
   $('trajectoryCount').textContent = `${session.responses.length} ${session.responses.length === 1 ? 'respuesta' : 'respuestas'}`;
   $('choices').innerHTML = '';
   branch.questions.forEach((question, index) => {
@@ -71,7 +78,7 @@ function submitResponse(event) {
 
 function renderClosure() {
   const outcome = buildPlanBOutcome(session);
-  $('closureTitle').textContent = 'Tus cinco respuestas encontraron un camino.';
+  $('closureTitle').textContent = `Tus ${outcome.responseCount} respuestas encontraron un camino.`;
   $('closureText').textContent = outcome.epilogue;
   $('closureCount').textContent = `${outcome.responseCount} respuestas · pulso dominante: ${outcome.pulse.label}`;
   $('reader').classList.add('hidden'); $('closure').classList.remove('hidden');
