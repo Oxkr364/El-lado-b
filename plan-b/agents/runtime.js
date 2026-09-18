@@ -4,10 +4,13 @@ const MAX_FREE_IMAGES = 5;
 const MAX_FREE_CHARACTERS = 4;
 const MAX_FREE_PAGES = 40;
 const MAX_IMAGE_BYTES = 650 * 1024;
+const PAGE_MIN_WORDS = 200;
+const PAGE_TARGET_WORDS = 300;
+const PAGE_MAX_WORDS = 450;
 
 export const AGENTS = Object.freeze({
   seguridad: { name: 'Seguridad editorial', role: 'Protege a lectores y autores' },
-  directorPlanB: { name: 'Director de Plan B', role: 'Coordina las diez ramas' },
+  directorPlanB: { name: 'Director de Plan B', role: 'Coordina hasta cuatro decisiones' },
   accion: { name: 'Acción', role: 'Convierte cada respuesta en una acción narrativa' },
   continuidad: { name: 'Continuidad', role: 'Mantiene la lógica entre las dos capas' },
   canon: { name: 'Canon', role: 'Protege la fuente original' },
@@ -29,12 +32,10 @@ function normalizeText(value) {
 }
 
 function splitStory(text) {
-  const paragraphs = normalizeText(text).split(/\n{2,}/).map(item => item.trim()).filter(Boolean);
-  if (paragraphs.length > 1) return paragraphs;
-  const sentences = normalizeText(text).match(/[^.!?]+[.!?]+|[^.!?]+$/g) ?? [];
-  const pages = [];
-  for (let index = 0; index < sentences.length; index += 3) pages.push(sentences.slice(index, index + 3).join(' ').trim());
-  return pages.filter(Boolean);
+  const words = normalizeText(text).split(/\s+/).filter(Boolean); if (!words.length) return [];
+  const pages = []; for (let index = 0; index < words.length; index += PAGE_TARGET_WORDS) pages.push(words.slice(index, index + PAGE_TARGET_WORDS).join(' '));
+  if (pages.length > 1) { const lastWords = pages.at(-1).split(/\s+/); if (lastWords.length < PAGE_MIN_WORDS) { const previous = pages.at(-2).split(/\s+/); const combined = [...previous, ...lastWords]; if (combined.length <= PAGE_MAX_WORDS) { pages.splice(-2, 2, combined.join(' ')); } else { const splitAt = Math.ceil(combined.length / 2); pages.splice(-2, 2, combined.slice(0, splitAt).join(' '), combined.slice(splitAt).join(' ')); } } }
+  return pages;
 }
 
 function safeSlug(title) {
@@ -136,12 +137,12 @@ export function runStoryAgents(input) {
     log.push(event('friccion', 'ok', 'friccion_detectada', tension,
       { scope: rawSections.length > 2 ? 'progressive' : 'local', sectionCount: rawSections.length }));
     const blueprint = buildPlanBBlueprint({ title, sections: rawSections, protagonist: characters[0]?.name || 'el protagonista' });
-    log.push(event('directorPlanB', 'ok', 'red_plan_b_preparada', `Se prepararon ${blueprint.branches.length} ramas con una pregunta y tres alternativas por rama.`, { limits: PLAN_B_LIMITS, blueprint }));
+    log.push(event('directorPlanB', 'ok', 'red_plan_b_preparada', `Se prepararon ${blueprint.branches.length} decisiones con una pregunta y dos alternativas por momento.`, { limits: PLAN_B_LIMITS, blueprint }));
   }
 
   const pages = rawSections.map((text, index) => ({
     id: `page-${index + 1}`, position: index + 1, title: index === 0 ? title : `Fragmento ${index + 1}`,
-    text, imageIndex: images.length ? index % images.length : null
+    text, imageIndex: index < images.length ? index : null
   }));
   log.push(event('narrador', 'ok', 'secuencia_construida',
     `Se prepararon ${pages.length} páginas sin agregar hechos nuevos.`, { pages: pages.length, inventedFacts: false }));
@@ -191,4 +192,4 @@ export function runStoryAgents(input) {
   return { ok: true, status: 'draft', story: generated, log };
 }
 
-export { MAX_FREE_IMAGES, MAX_FREE_CHARACTERS, MAX_FREE_PAGES, MAX_IMAGE_BYTES };
+export { MAX_FREE_IMAGES, MAX_FREE_CHARACTERS, MAX_FREE_PAGES, MAX_IMAGE_BYTES, PAGE_MIN_WORDS, PAGE_TARGET_WORDS, PAGE_MAX_WORDS };
