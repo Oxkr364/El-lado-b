@@ -1,10 +1,11 @@
 import { MAX_FREE_IMAGES, MAX_FREE_CHARACTERS, runStoryAgents } from '../plan-b/agents/runtime.js';
 const $ = id => document.getElementById(id);
 const db = window.supabase?.createClient('https://bqrwcmrpzvtjoebmqiji.supabase.co', 'sb_publishable_XK4dh9Ch_7MebSMO7JJm7Q_8CXu2Qa8');
-const PUBLIC_CREATOR_URL = 'https://el-lado-b-el-lado-b.vercel.app/crear/';
+const PUBLIC_CREATOR_URL = 'https://el-lado-b-git-codex-plan-b-story-engine-el-lado-b.vercel.app/crear/';
 const AUTH_REDIRECT_URL = ['localhost', '127.0.0.1'].includes(location.hostname) ? PUBLIC_CREATOR_URL : new URL('./', location.href).href;
 let selectedImages = [], previewUrls = [], characters = [], currentUser = null, generatedResult = null, coverImage = null, coverPreviewUrl = null;
 let magicLinkCooldown = null;
+let savedStoriesRequest = 0;
 const createCharacter = (data = {}) => ({ id: crypto.randomUUID(), name: '', description: '', role: characters.length ? 'secondary' : 'protagonist', relationship: '', portraitSource: 'none', image: null, previewUrl: null, ...data });
 const MAX_IMAGE_BYTES = 650 * 1024;
 async function compressImage(file) {
@@ -99,7 +100,16 @@ function renderPreview(result) {
 }
 
 function renderAuth() { $('authForm').hidden = Boolean(currentUser); $('logoutBtn').hidden = !currentUser; $('authStatus').textContent = currentUser ? `Sesión protegida activa: ${currentUser.email ?? 'usuario verificado'}` : 'Puedes generar una vista previa sin iniciar sesión.'; }
-async function loadSavedStories() { const box = $('savedStories'); box.innerHTML = ''; box.hidden = !currentUser; if (!currentUser || !db) return; const { data, error } = await db.from('user_stories').select('title').order('updated_at', { ascending: false }).limit(5); if (error) return; const heading = document.createElement('strong'); heading.textContent = 'Tus historias privadas'; box.appendChild(heading); const list = document.createElement('ul'); (data ?? []).forEach(story => { const item = document.createElement('li'); item.textContent = story.title; list.appendChild(item); }); box.appendChild(list); }
+async function loadSavedStories() {
+  const requestId = ++savedStoriesRequest, box = $('savedStories');
+  if (!currentUser || !db) { box.replaceChildren(); box.hidden = true; return; }
+  const { data, error } = await db.from('user_stories').select('title').order('updated_at', { ascending: false }).limit(5);
+  if (requestId !== savedStoriesRequest || error) return;
+  const heading = document.createElement('strong'); heading.textContent = 'Tus historias privadas';
+  const list = document.createElement('ul');
+  (data ?? []).forEach(story => { const item = document.createElement('li'); item.textContent = story.title; list.appendChild(item); });
+  box.replaceChildren(heading, list); box.hidden = false;
+}
 function authErrorMessage(error) {
   if (error?.status === 429 || /rate|seconds|limit/i.test(error?.message ?? '')) return 'Espera un minuto antes de pedir otro enlace. Supabase limita los reenvíos por seguridad.';
   if (/email|smtp|send/i.test(error?.message ?? '')) return `No se pudo enviar el correo: ${error.message}`;
