@@ -1,7 +1,7 @@
 import { MAX_FREE_IMAGES, MAX_FREE_CHARACTERS, runStoryAgents } from '../plan-b/agents/runtime.js';
 const $ = id => document.getElementById(id);
 const db = window.supabase?.createClient('https://bqrwcmrpzvtjoebmqiji.supabase.co', 'sb_publishable_XK4dh9Ch_7MebSMO7JJm7Q_8CXu2Qa8');
-const PUBLIC_CREATOR_URL = 'https://el-lado-b-git-codex-plan-b-story-engine-el-lado-b.vercel.app/crear/';
+const PUBLIC_CREATOR_URL = 'https://el-lado-b-el-lado-b.vercel.app/crear/';
 const AUTH_REDIRECT_URL = ['localhost', '127.0.0.1'].includes(location.hostname) ? PUBLIC_CREATOR_URL : new URL('./', location.href).href;
 let selectedImages = [], previewUrls = [], characters = [], currentUser = null, generatedResult = null, coverImage = null, coverPreviewUrl = null;
 let magicLinkCooldown = null;
