@@ -6,6 +6,7 @@ const AUTH_REDIRECT_URL = ['localhost', '127.0.0.1'].includes(location.hostname)
 let selectedImages = [], previewUrls = [], characters = [], currentUser = null, generatedResult = null, coverImage = null, coverPreviewUrl = null;
 let magicLinkCooldown = null;
 let savedStoriesRequest = 0;
+let saveInProgress = false;
 const createCharacter = (data = {}) => ({ id: crypto.randomUUID(), name: '', description: '', role: characters.length ? 'secondary' : 'protagonist', relationship: '', portraitSource: 'none', image: null, previewUrl: null, ...data });
 const MAX_IMAGE_BYTES = 650 * 1024;
 async function compressImage(file) {
@@ -136,6 +137,7 @@ async function sendMagicLink() {
 }
 
 async function persistStory() {
+  if (saveInProgress) return;
   if (!generatedResult) return setErrors(['Primero prepara la vista previa de la obra.']);
   if (!currentUser) {
     localStorage.setItem('plan_b_pending_save', 'true');
@@ -144,6 +146,7 @@ async function persistStory() {
     document.querySelector('.identity').scrollIntoView({ behavior: 'smooth', block: 'center' });
     return sendMagicLink();
   }
+  saveInProgress = true;
   const button = $('saveBtn'), story = generatedResult.story, uploadedPaths = []; let savedStory = null; button.disabled = true; button.textContent = 'GUARDANDO…';
   try {
     const { data, error } = await db.from('user_stories').insert({ owner_id: currentUser.id, slug: `${story.slug}-${crypto.randomUUID().slice(0, 8)}`, title: story.title, author_name: story.author, source_text: $('story').value, status: 'draft', visibility: 'private' }).select('id,slug').single(); if (error) throw error; savedStory = data;
@@ -154,7 +157,7 @@ async function persistStory() {
     const { error: characterError } = await db.from('user_story_characters').insert(rows); if (characterError) throw characterError;
     const { error: eventsError } = await db.from('user_story_agent_events').insert(generatedResult.log.map(item => ({ story_id: data.id, owner_id: currentUser.id, agent: item.agent, status: item.status, result: item.result, detail: item.detail, event_data: item.data }))); if (eventsError) throw eventsError;
     $('saveTitle').textContent = 'Borrador guardado de forma segura.'; $('saveDetail').textContent = `Identificador privado: ${data.slug}`; button.textContent = 'BORRADOR GUARDADO ✓'; localStorage.removeItem('plan_b_creator_draft'); localStorage.removeItem('plan_b_generated_result'); localStorage.removeItem('plan_b_pending_save'); await loadSavedStories();
-  } catch (error) { if (uploadedPaths.length) await db.storage.from('story-media').remove(uploadedPaths); if (savedStory?.id) await db.from('user_stories').delete().eq('id', savedStory.id); setErrors([`No se pudo guardar: ${error.message}`]); button.disabled = false; button.textContent = 'INTENTAR NUEVAMENTE'; }
+  } catch (error) { if (uploadedPaths.length) await db.storage.from('story-media').remove(uploadedPaths); if (savedStory?.id) await db.from('user_stories').delete().eq('id', savedStory.id); saveInProgress = false; setErrors([`No se pudo guardar: ${error.message}`]); button.disabled = false; button.textContent = 'INTENTAR NUEVAMENTE'; }
 }
 
 $('addCharacterBtn').onclick = () => { if (characters.length < MAX_FREE_CHARACTERS) { characters.push(createCharacter()); renderCharacters(); } };
