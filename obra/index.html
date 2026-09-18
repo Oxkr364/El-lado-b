@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Obra — El Lado B</title><link rel="stylesheet" href="./style.css">
+</head>
+<body>
+  <main class="reader-shell">
+    <header class="reader-top"><a href="../inicio/">← Biblioteca</a><a href="../crear/">Crear una historia</a></header>
+    <section id="readerState" class="reader-state">Cargando obra…</section>
+    <article id="story" hidden>
+      <header class="story-head"><p id="storyGenre" class="eyebrow"></p><h1 id="storyTitle"></h1><p id="storyByline"></p><p id="storySynopsis" class="synopsis"></p></header>
+      <section id="characters" class="characters"></section>
+      <section id="pages" class="pages"></section>
+      <section id="planB" class="plan-b" hidden><p class="eyebrow">PLAN B INTERACTIVO</p><h2>Lo que pudo cambiar</h2><p id="planBIntro"></p><div id="planBStage"></div></section>
+    </article>
+  </main>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script type="module" src="./app.js"></script>
+</body>
+</html>
