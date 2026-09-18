@@ -7,7 +7,7 @@ const MAX_IMAGE_BYTES = 650 * 1024;
 
 export const AGENTS = Object.freeze({
   seguridad: { name: 'Seguridad editorial', role: 'Protege a lectores y autores' },
-  directorPlanB: { name: 'Director de Plan B', role: 'Coordina las cinco ramas' },
+  directorPlanB: { name: 'Director de Plan B', role: 'Coordina las diez ramas' },
   accion: { name: 'Acción', role: 'Convierte cada respuesta en una acción narrativa' },
   continuidad: { name: 'Continuidad', role: 'Mantiene la lógica entre las dos capas' },
   canon: { name: 'Canon', role: 'Protege la fuente original' },
@@ -136,7 +136,7 @@ export function runStoryAgents(input) {
     log.push(event('friccion', 'ok', 'friccion_detectada', tension,
       { scope: rawSections.length > 2 ? 'progressive' : 'local', sectionCount: rawSections.length }));
     const blueprint = buildPlanBBlueprint({ title, sections: rawSections, protagonist: characters[0]?.name || 'el protagonista' });
-    log.push(event('directorPlanB', 'ok', 'red_plan_b_preparada', `Se prepararon ${blueprint.branches.length} ramas con dos preguntas alternativas por rama.`, { limits: PLAN_B_LIMITS, blueprint }));
+    log.push(event('directorPlanB', 'ok', 'red_plan_b_preparada', `Se prepararon ${blueprint.branches.length} ramas con una pregunta y tres alternativas por rama.`, { limits: PLAN_B_LIMITS, blueprint }));
   }
 
   const pages = rawSections.map((text, index) => ({
