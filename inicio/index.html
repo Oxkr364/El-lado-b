@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-  <meta name="theme-color" content="#0d0b0a">
+  <meta name="theme-color" content="#0b0908">
   <meta name="description" content="Umbral Editores: historias que abren otros caminos.">
   <title>Umbral Editores — Historias que abren otros caminos</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -11,79 +11,31 @@
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="./style.css">
 </head>
-<body>
-  <header class="site-header" id="top">
-    <a class="brand" href="#top" aria-label="Umbral Editores, inicio">
-      <span class="brand-name">UMBRAL</span>
-      <span class="brand-kind">EDITORES</span>
-    </a>
-    <button class="menu-toggle" id="menuToggle" aria-label="Abrir menú" aria-expanded="false">MENÚ</button>
-    <nav class="main-nav" id="mainNav" aria-label="Navegación principal">
-      <a href="#biblioteca">OBRAS</a>
-      <button type="button" id="openSearch">BUSCAR</button>
-      <a href="../crear/" class="nav-cta">INGRESAR MI HISTORIA</a>
-    </nav>
-  </header>
-
-  <main>
-    <section class="hero" aria-labelledby="heroTitle">
-      <img class="hero-art" src="../assets/umbral-editores-portada.png" alt="Una puerta abierta entre archivos históricos conduce hacia distintos caminos.">
-      <div class="hero-shade"></div>
-      <div class="hero-accessible-copy">
-        <p>Umbral Editores</p>
-        <h1 id="heroTitle">Historias que abren otros caminos.</h1>
-      </div>
-      <div class="hero-actions" aria-label="Acciones principales">
-        <a class="button button-primary" href="#biblioteca">EXPLORAR OBRAS</a>
-        <a class="button button-ghost" href="../crear/">INGRESAR MI HISTORIA</a>
-      </div>
-      <a class="hero-scroll" href="#biblioteca" aria-label="Ir a la biblioteca">DESCUBRIR <span>↓</span></a>
-    </section>
-
-    <section class="library" id="biblioteca" aria-labelledby="libraryTitle">
-      <div class="library-head">
-        <div>
-          <p class="eyebrow">BIBLIOTECA UMBRAL</p>
-          <h2 id="libraryTitle">Historias para cruzar.</h2>
-        </div>
-        <button class="search-trigger" id="librarySearchButton" type="button">BUSCAR UNA OBRA <span>⌕</span></button>
-      </div>
-
-      <form class="search-panel" id="searchPanel" role="search" hidden>
-        <label for="searchInput">Título, autor o género</label>
-        <div class="search-row">
-          <input id="searchInput" type="search" autocomplete="off" placeholder="Escribe para buscar…">
-          <button type="button" id="closeSearch" aria-label="Cerrar búsqueda">×</button>
-        </div>
-      </form>
-
-      <div class="filters" aria-label="Filtrar obras">
-        <button class="active" type="button" data-filter="all">TODAS</button>
-        <button type="button" data-filter="planB">CON PLAN B</button>
-        <button type="button" data-filter="album">CON ÁLBUM</button>
-      </div>
-
-      <div class="catalogue-grid" id="catalogueGrid" aria-live="polite"></div>
-      <p class="catalogue-state" id="catalogueState">Abriendo la biblioteca…</p>
-    </section>
-
-    <section class="creator-callout" aria-labelledby="creatorTitle">
-      <p class="eyebrow">PARA AUTORES Y AUTORAS</p>
-      <h2 id="creatorTitle">Tu historia también puede abrir un umbral.</h2>
-      <p>Publica una lectura tradicional o añade experiencias opcionales como Álbum y Plan B.</p>
-      <a class="button button-primary" href="../crear/">COMENZAR UNA HISTORIA</a>
-    </section>
-  </main>
-
-  <footer class="site-footer">
-    <div><strong>UMBRAL EDITORES</strong><span>Historias que abren otros caminos.</span></div>
-    <div class="ecosystem-seal" aria-label="Parte del ecosistema Teknova">
-      <span class="seal-placeholder">◇</span>
-      <small>ECOSISTEMA<br>TEKNOVA</small>
+<body class="cover-page">
+  <main class="cover" aria-labelledby="coverTitle">
+    <img class="cover-art" src="../assets/umbral-editores-portada.png" alt="Una puerta entre archivos históricos conduce hacia distintos caminos.">
+    <div class="cover-shade"></div>
+    <header class="cover-header">
+      <a class="brand" href="./" aria-label="Umbral Editores, inicio"><span>UMBRAL</span><small>EDITORES</small></a>
+      <button class="menu-button" id="menuButton" type="button" aria-controls="coverMenu" aria-expanded="false">MENÚ <span>☰</span></button>
+    </header>
+    <div class="cover-copy">
+      <p>EDITORIAL DE HISTORIAS VIVAS</p>
+      <h1 id="coverTitle">Historias que abren<br>otros caminos.</h1>
+      <button class="enter-button" id="enterButton" type="button">ENTRAR <span>→</span></button>
     </div>
-  </footer>
-
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="./app.js"></script>
+    <div class="teknova-seal" aria-label="Parte del ecosistema Teknova"><span>◇</span><small>ECOSISTEMA<br>TEKNOVA</small></div>
+  </main>
+  <nav class="cover-menu" id="coverMenu" aria-label="Menú principal" aria-hidden="true">
+    <button class="menu-close" id="menuClose" type="button" aria-label="Cerrar menú">CERRAR ×</button>
+    <div class="menu-brand">UMBRAL <small>EDITORES</small></div>
+    <div class="menu-links">
+      <a href="./obras.html"><span>01</span> OBRAS</a>
+      <a href="./buscar.html"><span>02</span> BUSCAR</a>
+      <a href="../crear/"><span>03</span> INGRESAR MI HISTORIA</a>
+    </div>
+    <p>Historias que abren otros caminos.</p>
+  </nav>
+  <script src="./home.js"></script>
 </body>
 </html>
