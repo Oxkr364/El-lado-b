@@ -3,7 +3,6 @@ const SUPABASE_KEY='sb_publishable_XK4dh9Ch_7MebSMO7JJm7Q_8CXu2Qa8';
 const db=window.supabase?.createClient(SUPABASE_URL,SUPABASE_KEY);
 const grid=document.getElementById('catalogueGrid');
 const state=document.getElementById('catalogueState');
-const searchPanel=document.getElementById('searchPanel');
 const searchInput=document.getElementById('searchInput');
 let works=[];
 let filter='all';
@@ -37,7 +36,7 @@ function card(work){
   return article;
 }
 function matches(work){
-  const query=searchInput.value.trim().toLocaleLowerCase('es');
+  const query=(searchInput?.value||'').trim().toLocaleLowerCase('es');
   const haystack=`${work.title} ${work.author_name} ${work.genre} ${work.synopsis}`.toLocaleLowerCase('es');
   const moduleMatch=filter==='all'||Boolean(work.modules?.[filter]);
   return moduleMatch&&(!query||haystack.includes(query));
@@ -59,14 +58,6 @@ async function loadPublished(){
   works=[featured,...publicWorks];
   render();
 }
-function showSearch(){searchPanel.hidden=false;searchInput.focus();}
-document.getElementById('openSearch').onclick=showSearch;
-document.getElementById('librarySearchButton').onclick=showSearch;
-document.getElementById('closeSearch').onclick=()=>{searchPanel.hidden=true;searchInput.value='';render()};
-searchInput.oninput=render;
+if(searchInput)searchInput.oninput=render;
 document.querySelectorAll('[data-filter]').forEach(button=>button.onclick=()=>{filter=button.dataset.filter;document.querySelectorAll('[data-filter]').forEach(item=>item.classList.toggle('active',item===button));render()});
-const menu=document.getElementById('mainNav');
-const menuToggle=document.getElementById('menuToggle');
-menuToggle.onclick=()=>{const open=menu.classList.toggle('open');menuToggle.setAttribute('aria-expanded',String(open));menuToggle.textContent=open?'CERRAR':'MENÚ'};
-menu.querySelectorAll('a').forEach(link=>link.onclick=()=>{menu.classList.remove('open');menuToggle.setAttribute('aria-expanded','false');menuToggle.textContent='MENÚ'});
 loadPublished();
