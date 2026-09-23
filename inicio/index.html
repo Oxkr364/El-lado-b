@@ -1,1 +1,43 @@
-<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#111015"><title>Biblioteca — El Lado B</title><link rel="stylesheet" href="./style.css"></head><body><main class="library-shell"><header class="topbar"><a class="brand" href="../inicio/">EL LADO B</a><nav><a class="active" href="../inicio/">Biblioteca</a><a href="../crear/">Crear una historia</a></nav></header><section class="library-hero"><div><p class="eyebrow">BIBLIOTECA DE HISTORIAS</p><h1>Entra por una portada.<br>Quédate por lo que pudo ser.</h1><p>Explora obras nacidas de recuerdos, decisiones y otros lados de la vida.</p><a class="primary" href="#obra">VER LA OBRA <span>→</span></a></div><div class="hero-note"><span>ARCHIVO ABIERTO</span><strong>Historias<br>que todavía<br>respiran.</strong></div></section><section id="obra"><div class="section-head"><div><p class="eyebrow">LA OBRA</p><h2>El Lado B</h2></div></div><div id="catalogueGrid" class="catalogue-grid"></div></section><footer>EL LADO B · BIBLIOTECA ABIERTA</footer></main><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="./app.js"></script></body></html>
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#0b0908">
+  <meta name="description" content="Umbral Editores: historias que abren otros caminos.">
+  <title>Umbral Editores — Historias que abren otros caminos</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./style.css">
+</head>
+<body class="cover-page">
+  <main class="cover" aria-labelledby="coverTitle">
+    <img class="cover-art" src="../assets/umbral-editores-portada.png" alt="Una puerta entre archivos históricos conduce hacia distintos caminos.">
+    <div class="cover-shade"></div>
+    <header class="cover-header">
+      <div class="cover-brand">
+        <a class="brand" href="./" aria-label="Umbral Editores, inicio"><span>UMBRAL</span><small>EDITORES</small></a>
+        <span class="brand-tagline">Historias que abren otros caminos.</span>
+      </div>
+      <button class="menu-button" id="menuButton" type="button" aria-controls="coverMenu" aria-expanded="false">MENÚ <span>☰</span></button>
+    </header>
+    <div class="cover-copy">
+      <h1 class="sr-only" id="coverTitle">Umbral Editores</h1>
+      <button class="enter-button" id="enterButton" type="button">ENTRAR <span>→</span></button>
+    </div>
+    <div class="teknova-seal" aria-label="Parte del ecosistema Teknova"><span>◇</span><small>ECOSISTEMA<br>TEKNOVA</small></div>
+  </main>
+  <nav class="cover-menu" id="coverMenu" aria-label="Menú principal" aria-hidden="true">
+    <button class="menu-close" id="menuClose" type="button" aria-label="Cerrar menú">CERRAR ×</button>
+    <div class="menu-brand">UMBRAL <small>EDITORES</small></div>
+    <div class="menu-links">
+      <a href="./obras.html"><span>01</span> OBRAS</a>
+      <a href="./buscar.html"><span>02</span> BUSCAR</a>
+      <a href="../crear/"><span>03</span> INGRESAR MI HISTORIA</a>
+    </div>
+    <p>Historias que abren otros caminos.</p>
+  </nav>
+  <script src="./home.js"></script>
+</body>
+</html>
