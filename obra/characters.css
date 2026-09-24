@@ -1,0 +1,23 @@
+.canon-characters {
+  margin-top: 55px;
+  padding-top: 30px;
+  border-top: 1px solid var(--line);
+}
+
+.canon-characters h2 {
+  margin: 8px 0 24px;
+  font-size: 34px;
+}
+
+.character-role {
+  color: var(--pink);
+  font: 800 10px system-ui, sans-serif;
+  letter-spacing: .12em;
+}
+
+.character small {
+  display: block;
+  margin-top: 12px;
+  color: #76636d;
+  font: 12px/1.4 system-ui, sans-serif;
+}
