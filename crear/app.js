@@ -34,7 +34,7 @@ function updateConsentVisibility() {
 }
 
 function setStoryText(text, fileName = '') {
-  $('story').value = text.slice(0, 12000);
+  $('story').value = text.slice(0, 80000);
   $('storyCount').textContent = $('story').value.length.toLocaleString('es-CL');
   $('storyFileName').hidden = !fileName;
   $('storyFileName').textContent = fileName ? `Texto cargado desde: ${fileName}` : '';
@@ -68,7 +68,7 @@ function renderCharacters() {
       <label ${index ? '' : 'hidden'}>Relación con el protagonista<input class="character-relationship" maxlength="240" placeholder="Hermana, amigo, rival…"></label>
       <div class="portrait-options" role="radiogroup"><label><input type="radio" name="portrait-${character.id}" value="upload"><span><strong>Subir fotografía</strong><small>Usaremos tu imagen como referencia.</small></span></label><label><input type="radio" name="portrait-${character.id}" value="ai"><span><strong>Crear con IA</strong><small>A partir del nombre y descripción.</small></span></label><label><input type="radio" name="portrait-${character.id}" value="none"><span><strong>Sin imagen</strong><small>Podrás agregarla después.</small></span></label></div>
       <div class="portrait-upload"><label class="dropzone compact"><strong>Agregar retrato</strong><span>JPG, PNG o WebP.</span><input class="character-image" type="file" accept="image/jpeg,image/png,image/webp"></label><div class="character-preview"></div></div>
-      <p class="ai-note" hidden>La ficha quedará preparada para generar un retrato consistente cuando se conecte el servicio seguro de imágenes.</p>`;
+      <p class="ai-note" hidden>Gerente Gen preparará una sola imagen final a partir de esta descripción. Sé lo más específico posible.</p>`;
     for (const [selector, value] of [['.character-name', character.name], ['.character-description', character.description], ['.character-role', character.role], ['.character-relationship', character.relationship]]) card.querySelector(selector).value = value;
     card.querySelector(`input[value="${character.portraitSource}"]`).checked = true;
     const upload = card.querySelector('.portrait-upload'), aiNote = card.querySelector('.ai-note'); upload.hidden = character.portraitSource !== 'upload'; aiNote.hidden = character.portraitSource !== 'ai';
@@ -92,6 +92,7 @@ function renderImages() {
 async function animateLog(log) { $('pipelineState').className = 'status working'; $('pipelineState').textContent = 'PREPARANDO TU HISTORIA'; for (const message of ['Leyendo tu relato…', 'Organizando los recuerdos…', 'Preparando los personajes…', 'Construyendo la vista previa…']) { $('processingMessage').textContent = message; await new Promise(resolve => setTimeout(resolve, Math.max(180, log.length * 24))); } }
 function storySafetyMessage(story) { return story.ageRating === '18+' ? 'Tu obra fue aprobada como contenido sensual no explícito para mayores de 18 años.' : 'Tu obra superó la revisión editorial y está lista para revisar.'; }
 function blueprintFor(story) { return story.planBBlueprint ?? generatedResult?.log?.find(item => item.agent === 'directorPlanB')?.data?.blueprint ?? null; }
+function genEmailHref(order) { return order?.notification ? `mailto:?subject=${encodeURIComponent(order.notification.subject)}&body=${encodeURIComponent(order.notification.body)}` : ''; }
 function setPublishState() {
   const publish = $('publishBtn'), open = $('openPublishedBtn');
   if (!publish) return;
@@ -108,6 +109,8 @@ function setPublishState() {
 function renderPreview(result) {
   const story = result.story, pages = $('previewPages'); $('previewTitle').textContent = story.title; const experiences = ['lectura']; if (story.modules.album) experiences.push('álbum'); if (story.modules.planB) experiences.push('Plan B'); if (story.ageRating === '18+') experiences.push('+18'); $('previewMeta').textContent = `Por ${story.author} · ${story.pages.length} páginas · ${story.characters.length} personajes · ${experiences.join(' + ')}`; pages.innerHTML = '';
   const proposal = document.createElement('article'); proposal.className = 'work-proposal'; proposal.innerHTML = `<span>ESTA OBRA PROPONE</span><h3>${story.synopsis}</h3><p>${story.modules.planB ? 'Conoce primero la historia original y después interviene en sus momentos decisivos.' : story.modules.album ? 'Lee la historia y recorre también su álbum visual.' : 'Una experiencia de lectura centrada en la historia original.'}</p>`; pages.appendChild(proposal);
+  const gen = story.visualWorkOrder;
+  if (gen) { const order = document.createElement('article'); order.className = 'gen-work-order'; order.innerHTML = `<span>GERENTE GEN · PRODUCCIÓN VISUAL</span><h3>${gen.status === 'pending' ? 'Orden visual preparada' : 'Sin trabajo visual pendiente'}</h3><p>${gen.status === 'pending' ? `${gen.summary.totalImagesToGenerate} imágenes pendientes: ${gen.summary.charactersToGenerate} personajes, ${gen.summary.cover === 'generate' ? '1 portada' : 'portada cargada'} y ${gen.summary.albumToGenerate} escenas de álbum. Plazo máximo: 48 horas.` : 'La obra ya incluye todos sus recursos visuales.'}</p><small>Primero personajes, luego portada y finalmente álbum. Un resultado por imagen; solo se repite ante una falla técnica.</small>`; if (gen.status === 'pending') { const send = document.createElement('a'); send.className = 'gen-email'; send.href = genEmailHref(gen); send.textContent = 'ENVIAR ORDEN A GEN POR CORREO →'; order.appendChild(send); } pages.appendChild(order); }
   const group = document.createElement('section'); group.className = 'character-preview-group';
   story.characters.forEach((character, index) => { const card = document.createElement('article'), portrait = document.createElement('div'), copy = document.createElement('div'), label = document.createElement('span'), name = document.createElement('h3'), description = document.createElement('p'); card.className = 'character-preview-card'; portrait.className = 'character-portrait'; if (characters[index]?.previewUrl) { const image = document.createElement('img'); image.src = characters[index].previewUrl; image.alt = `Retrato de ${character.name}`; portrait.appendChild(image); } else portrait.textContent = character.name.slice(0, 1).toUpperCase(); label.textContent = character.role === 'protagonist' ? 'PROTAGONISTA' : character.role === 'coprotagonist' ? 'COPROTAGONISTA' : 'PERSONAJE SECUNDARIO'; name.textContent = character.name; description.textContent = character.description; copy.append(label, name, description); if (character.relationship) { const relation = document.createElement('small'); relation.textContent = character.relationship; copy.appendChild(relation); } card.append(portrait, copy); group.appendChild(card); }); pages.appendChild(group);
   story.pages.forEach(page => { const article = document.createElement('article'), number = document.createElement('span'), title = document.createElement('h3'), text = document.createElement('p'); number.textContent = String(page.position).padStart(2, '0'); title.textContent = page.title; text.textContent = page.text; article.append(number); if (page.imageIndex !== null && previewUrls[page.imageIndex]) { const image = document.createElement('img'); image.src = previewUrls[page.imageIndex]; image.alt = `Fotografía asociada a ${page.title}`; article.appendChild(image); } article.append(title, text); pages.appendChild(article); });
@@ -122,7 +125,7 @@ async function loadSavedStories() {
   if (requestId !== savedStoriesRequest || error) return;
   const heading = document.createElement('strong'); heading.textContent = 'Tus historias privadas';
   const list = document.createElement('ul');
-  (data ?? []).forEach(story => { const item = document.createElement('li'); item.textContent = story.title; if (story.status === 'published' && story.visibility === 'public') { const link = document.createElement('a'); link.href = `../obra/?slug=${encodeURIComponent(story.slug)}`; link.textContent = 'Abrir obra publicada →'; item.append(' ', link); } list.appendChild(item); });
+  (data ?? []).forEach(story => { const item = document.createElement('li'); item.textContent = story.title; const production = document.createElement('a'); production.href = '../produccion/'; production.textContent = 'Producción visual →'; item.append(' ', production); if (story.status === 'published' && story.visibility === 'public') { const link = document.createElement('a'); link.href = `../obra/?slug=${encodeURIComponent(story.slug)}`; link.textContent = 'Abrir obra →'; item.append(' ', link); } list.appendChild(item); });
   box.replaceChildren(heading, list); box.hidden = false;
 }
 function authErrorMessage(error) {
