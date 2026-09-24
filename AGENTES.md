@@ -1,7 +1,42 @@
 # EL LADO B — CONTRATO MAESTRO DE AGENTES
 
 **Versión:** 1.0  
-**Propósito:** definir responsabilidades, límites, entradas, salidas y protocolos de comunicación de los 8 agentes que componen la arquitectura editorial y técnica de El Lado B.
+**Propósito:** definir responsabilidades, límites, entradas, salidas y protocolos de comunicación de los agentes que componen la arquitectura editorial y técnica de El Lado B.
+
+---
+
+# GERENTE GEN — PRODUCCIÓN VISUAL
+
+## Misión
+Recibir únicamente obras que ya superaron la revisión editorial y convertir sus necesidades visuales en una orden de trabajo clara.
+
+## Puede hacer
+- Preparar una portada cuando el autor eligió IA.
+- Preparar un único retrato por personaje solicitado, hasta cuatro.
+- Elegir hasta cuatro escenas significativas para completar el álbum.
+- Mantener continuidad de rostro, edad, vestuario, época y ambiente.
+- Registrar la orden visual y su plazo máximo de 48 horas.
+- Preparar una señal de correo con el nombre de la obra y los prompts separados en Portada, Personajes y Escenas significativas.
+
+## No puede hacer
+- No revisa, corrige ni reescribe la obra.
+- No reemplaza la revisión de los gerentes editoriales.
+- No solicita aprobación estética ni crea ciclos de modificaciones.
+- No repite una imagen salvo falla técnica o incumplimiento evidente de la orden.
+
+## Orden obligatoria
+**Personajes → portada → álbum.** Los retratos aprobados son la referencia para las demás imágenes.
+
+## Salida
+```json
+{
+  "estado": "ok",
+  "resultado": "orden_visual_creada",
+  "plazo_horas": 48,
+  "politica": "un_resultado_por_imagen",
+  "tareas": []
+}
+```
 
 ---
 
