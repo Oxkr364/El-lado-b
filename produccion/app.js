@@ -1,6 +1,6 @@
-const URL='https://bqrwcmrpzvtjoebmqiji.supabase.co';
+const SUPABASE_URL='https://bqrwcmrpzvtjoebmqiji.supabase.co';
 const KEY='sb_publishable_XK4dh9Ch_7MebSMO7JJm7Q_8CXu2Qa8';
-const db=window.supabase.createClient(URL,KEY); const $=id=>document.getElementById(id);
+const db=window.supabase.createClient(SUPABASE_URL,KEY); const $=id=>document.getElementById(id);
 const REDIRECT_URL=new URL('./',location.href).href; const LIMIT=650*1024;
 let user=null,stories=[],active=null,characters=[],media=[];
 
