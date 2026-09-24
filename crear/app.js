@@ -125,7 +125,7 @@ async function loadSavedStories() {
   if (requestId !== savedStoriesRequest || error) return;
   const heading = document.createElement('strong'); heading.textContent = 'Tus historias privadas';
   const list = document.createElement('ul');
-  (data ?? []).forEach(story => { const item = document.createElement('li'); item.textContent = story.title; if (story.status === 'published' && story.visibility === 'public') { const link = document.createElement('a'); link.href = `../obra/?slug=${encodeURIComponent(story.slug)}`; link.textContent = 'Abrir obra publicada →'; item.append(' ', link); } list.appendChild(item); });
+  (data ?? []).forEach(story => { const item = document.createElement('li'); item.textContent = story.title; const production = document.createElement('a'); production.href = '../produccion/'; production.textContent = 'Producción visual →'; item.append(' ', production); if (story.status === 'published' && story.visibility === 'public') { const link = document.createElement('a'); link.href = `../obra/?slug=${encodeURIComponent(story.slug)}`; link.textContent = 'Abrir obra →'; item.append(' ', link); } list.appendChild(item); });
   box.replaceChildren(heading, list); box.hidden = false;
 }
 function authErrorMessage(error) {

@@ -9,13 +9,15 @@
     <header class="reader-top"><a href="../inicio/">← Biblioteca</a><a href="../crear/">Crear una historia</a></header>
     <section id="readerState" class="reader-state">Cargando obra…</section>
     <article id="story" hidden>
+      <figure id="storyCover" class="story-cover" hidden><img id="coverImage" alt=""><figcaption><span id="coverAuthor"></span><strong id="coverTitle"></strong><small>UMBRAL EDITORES</small></figcaption></figure>
       <header class="story-head"><p id="storyGenre" class="eyebrow"></p><h1 id="storyTitle"></h1><p id="storyByline"></p><p id="storySynopsis" class="synopsis"></p></header>
       <section id="pages" class="pages"></section>
+      <section id="album" class="story-album" hidden><p class="eyebrow">ÁLBUM VISUAL</p><h2>Escenas de la obra</h2><div id="albumGrid" class="album-grid"></div></section>
       <section id="characters" class="canon-characters" hidden><p class="eyebrow">PERSONAJES DEL CANON</p><h2>Quienes habitan esta obra</h2><div id="characterGrid" class="characters"></div></section>
       <section id="planB" class="plan-b" hidden><p class="eyebrow">PLAN B INTERACTIVO</p><h2>Lo que pudo cambiar</h2><p id="planBIntro"></p><div id="planBStage"></div></section>
     </article>
   </main>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script type="module" src="./app.js?v=8"></script>
+  <script type="module" src="./app.js?v=9"></script>
 </body>
 </html>
