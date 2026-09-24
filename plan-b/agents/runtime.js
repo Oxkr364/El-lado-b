@@ -1,6 +1,6 @@
 import { buildPlanBBlueprint, PLAN_B_LIMITS } from './plan-b-network.js';
 
-const MAX_FREE_IMAGES = 5;
+const MAX_FREE_IMAGES = 4;
 const MAX_FREE_CHARACTERS = 4;
 const MAX_FREE_PAGES = 40;
 const MAX_IMAGE_BYTES = 650 * 1024;
@@ -20,7 +20,8 @@ export const AGENTS = Object.freeze({
   archivo: { name: 'Archivo', role: 'Clasifica fotografías y procedencia' },
   validador: { name: 'Validador', role: 'Comprueba reglas y coherencia' },
   planificador: { name: 'Planificador', role: 'Ordena la ejecución' },
-  ejecutor: { name: 'Ejecutor', role: 'Genera el borrador final' }
+  ejecutor: { name: 'Ejecutor', role: 'Genera el borrador final' },
+  gen: { name: 'Gerente Gen', role: 'Prepara y controla la producción visual' }
 });
 
 function event(agent, status, result, detail, data = {}) {
@@ -41,6 +42,93 @@ function splitStory(text) {
 function safeSlug(title) {
   return normalizeText(title).normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase()
     .replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '').slice(0, 56) || `historia-${Date.now()}`;
+}
+
+function visualScenes(pages, count = MAX_FREE_IMAGES) {
+  const words = pages.flatMap(page => normalizeText(page.text).split(/\s+/)).filter(Boolean);
+  if (!words.length || !count) return [];
+  const size = Math.max(1, Math.ceil(words.length / count));
+  return Array.from({ length: count }, (_, index) => {
+    const start = Math.min(words.length - 1, index * size);
+    const chunk = words.slice(start, Math.min(words.length, start + size));
+    return chunk.length ? chunk.join(' ') : words.slice(Math.max(0, words.length - size)).join(' ');
+  });
+}
+
+function visualPromptBase({ genre, title }) {
+  return `Ilustración editorial para “${title}”, género ${genre}. Mantener época, ambiente, vestuario y rasgos de los personajes con absoluta continuidad. Sin palabras, letras, logotipos ni marcas de agua.`;
+}
+
+function buildGenEmail(title, tasks, summary) {
+  const section = (heading, items, empty) => [heading, items.length
+    ? items.map((task, index) => `${index + 1}. ${task.prompt}`).join('\n\n')
+    : empty].join('\n');
+  const body = [
+    'GERENTE GEN — ORDEN DE PRODUCCIÓN VISUAL',
+    `OBRA: ${title}`,
+    `TOTAL A GENERAR: ${summary.totalImagesToGenerate}`,
+    '',
+    section('PORTADA', tasks.filter(task => task.type === 'cover'), 'Portada cargada por el autor. No generar.'),
+    '',
+    section('PERSONAJES', tasks.filter(task => task.type === 'character'), 'No hay retratos pendientes.'),
+    '',
+    section('ESCENAS SIGNIFICATIVAS (ÁLBUM)', tasks.filter(task => task.type === 'album'), 'No hay escenas pendientes.'),
+    '',
+    'ORDEN: personajes → portada → álbum.',
+    'Usar un resultado final por imagen. Repetir solo ante falla técnica.',
+    'Plazo máximo: 48 horas.'
+  ].join('\n');
+  return { subject: `Solicitud visual Gen — ${title}`, body };
+}
+
+export function buildGenWorkOrder({ title, synopsis, genre, cover, characters, pages, modules, uploadedAlbumImages = 0 }) {
+  const base = visualPromptBase({ genre, title });
+  const characterTasks = characters
+    .filter(character => character.portraitSource === 'ai')
+    .map((character, index) => ({
+      id: `personaje-${index + 1}`,
+      type: 'character',
+      name: character.name,
+      quantity: 1,
+      prompt: `${base} Retrato de referencia de ${character.name}, ${character.role}: ${character.description}${character.relationship ? ` Relación: ${character.relationship}.` : ''} Fondo neutro, cuerpo visible y rostro claramente definido.`
+    }));
+  const coverTasks = cover.source === 'ai' ? [{
+    id: 'portada', type: 'cover', quantity: 1,
+    prompt: `${base} Portada vertical, composición cinematográfica. Reseña: ${synopsis}.${cover.prompt ? ` Indicación del autor: ${cover.prompt}.` : ''}`
+  }] : [];
+  const missingAlbumImages = modules.album ? Math.max(0, MAX_FREE_IMAGES - uploadedAlbumImages) : 0;
+  const selectedScenes = visualScenes(pages, missingAlbumImages);
+  const albumTasks = selectedScenes.map((scene, index) => ({
+    id: `album-${index + 1}`,
+    type: 'album',
+    scene: index + 1,
+    quantity: 1,
+    prompt: `${base} Escena horizontal significativa del relato: ${scene.slice(0, 520)}. Usar como referencia obligatoria los retratos de personajes ya creados.`
+  }));
+  const tasks = [...characterTasks, ...coverTasks, ...albumTasks];
+  const summary = {
+    cover: cover.source === 'ai' ? 'generate' : 'uploaded',
+    charactersToGenerate: characterTasks.length,
+    albumUploaded: uploadedAlbumImages,
+    albumToGenerate: albumTasks.length,
+    totalImagesToGenerate: tasks.reduce((total, task) => total + task.quantity, 0)
+  };
+  return {
+    version: 1,
+    manager: 'gen',
+    status: tasks.length ? 'pending' : 'not_required',
+    deadlineHours: tasks.length ? 48 : 0,
+    sequence: ['characters', 'cover', 'album'],
+    policy: {
+      oneResultPerItem: true,
+      aestheticRevisions: false,
+      retryOnlyOnTechnicalFailure: true,
+      editorialReviewRepeated: false
+    },
+    summary,
+    notification: buildGenEmail(title, tasks, summary),
+    tasks
+  };
 }
 
 function failure(log, agent, result, detail, errors) {
@@ -86,6 +174,11 @@ export function runStoryAgents(input) {
   const author = normalizeText(input.author);
   const synopsis = normalizeText(input.synopsis);
   const modules = { album: Boolean(input.modules?.album), planB: Boolean(input.modules?.planB) };
+  const cover = {
+    source: input.cover?.source === 'upload' ? 'upload' : 'ai',
+    prompt: normalizeText(input.cover?.prompt),
+    name: normalizeText(input.cover?.name)
+  };
   const genre = normalizeText(input.genre) || 'general';
   const adultConfirmed = Boolean(input.adultConfirmed);
   const images = Array.isArray(input.images) ? input.images : [];
@@ -110,6 +203,7 @@ export function runStoryAgents(input) {
   if (title.length < 3) editorialErrors.push('El título debe tener al menos 3 caracteres.');
   if (synopsis.length < 30) editorialErrors.push('La reseña debe tener al menos 30 caracteres.');
   if (story.length < 80) editorialErrors.push('El relato debe tener al menos 80 caracteres.');
+  if (cover.source === 'upload' && !cover.name) editorialErrors.push('Selecciona una portada o elige crearla con IA.');
   if (characters.length > MAX_FREE_CHARACTERS) editorialErrors.push(`La edición gratuita admite hasta ${MAX_FREE_CHARACTERS} personajes.`);
   if (!characters.length) editorialErrors.push('Agrega al menos un personaje protagonista.');
   characters.forEach((character, index) => {
@@ -172,6 +266,15 @@ export function runStoryAgents(input) {
   log.push(event('validador', 'ok', 'borrador_validado',
     'El relato conserva su texto, mantiene el canon separado y respeta el límite gratuito.', { freeImageLimit: MAX_FREE_IMAGES }));
 
+  const visualWorkOrder = buildGenWorkOrder({
+    title, synopsis, genre, cover, characters, pages, modules, uploadedAlbumImages: images.length
+  });
+  log.push(event('gen', 'ok', visualWorkOrder.status === 'pending' ? 'orden_visual_creada' : 'produccion_visual_no_requerida',
+    visualWorkOrder.status === 'pending'
+      ? `Orden lista: ${visualWorkOrder.summary.totalImagesToGenerate} imágenes, con plazo máximo de 48 horas.`
+      : 'La portada y el contenido visual fueron cargados por el autor; no hay imágenes pendientes.',
+    { workOrder: visualWorkOrder }));
+
   const plan = ['Crear portada', 'Ordenar fragmentos', 'Asociar fotografías', 'Construir vista previa privada'];
   log.push(event('planificador', 'ok', 'tarea_planificada', 'La ejecución quedó dividida en cuatro operaciones.', { plan }));
 
@@ -180,7 +283,7 @@ export function runStoryAgents(input) {
     ageRating: genre === 'adult_sensual' ? '18+' : 'general', safetyStatus: 'approved',
     planBBlueprint: modules.planB ? buildPlanBBlueprint({ title, sections: rawSections, protagonist: characters[0]?.name || 'el protagonista' }) : null,
     status: 'draft', visibility: 'private', plan: 'free', imageLimit: MAX_FREE_IMAGES,
-    characterLimit: MAX_FREE_CHARACTERS, pageLimit: MAX_FREE_PAGES,
+    characterLimit: MAX_FREE_CHARACTERS, pageLimit: MAX_FREE_PAGES, cover, visualWorkOrder,
     imageCount: images.length, characters, character: characters[0], pages, createdAt: new Date().toISOString()
   };
   log.push(event('ejecutor', 'ok', 'borrador_generado',
