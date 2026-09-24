@@ -60,13 +60,17 @@ function visualPromptBase({ genre, title }) {
 }
 
 function buildGenEmail(title, tasks, summary) {
+  const executable = task => `[GENERAR IMAGEN — NO RESPONDER CON TEXTO]\nGenera ahora una única imagen usando tu herramienta de creación de imágenes. No saludes, no expliques, no analices y no devuelvas un prompt. Ejecuta directamente esta instrucción visual:\n\n${task.prompt}`;
   const section = (heading, items, empty) => [heading, items.length
-    ? items.map((task, index) => `${index + 1}. ${task.prompt}`).join('\n\n')
+    ? items.map((task, index) => `BLOQUE ${index + 1} — COPIAR POR SEPARADO\n${executable(task)}`).join('\n\n--------------------\n\n')
     : empty].join('\n');
   const body = [
     'GERENTE GEN — ORDEN DE PRODUCCIÓN VISUAL',
     `OBRA: ${title}`,
     `TOTAL A GENERAR: ${summary.totalImagesToGenerate}`,
+    '',
+    'IMPORTANTE: pega en Gemini un solo bloque por vez. No pegues el correo completo.',
+    'Cada bloque exige generar la imagen directamente y prohíbe responder con texto.',
     '',
     section('PORTADA', tasks.filter(task => task.type === 'cover'), 'Portada cargada por el autor. No generar.'),
     '',
