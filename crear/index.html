@@ -22,7 +22,7 @@
   <header class="topbar"><a class="brand" href="../inicio/">EL LADO B</a><span>LABORATORIO DE HISTORIAS</span></header>
   <main>
     <section class="editor" aria-labelledby="pageTitle">
-      <div class="intro-copy"><p class="eyebrow">PUBLICA TU OBRA</p><h1 id="pageTitle">Tu historia comienza aquí.</h1><p>Carga el texto, presenta a sus personajes y elige la experiencia que quieres ofrecer. Tu obra permanecerá privada hasta que decidas publicarla.</p></div>
+      <div class="intro-copy"><p class="eyebrow">PUBLICA TU OBRA</p><h1 id="pageTitle">Tu historia comienza aquí.</h1><p>Carga el texto, presenta a sus personajes y elige la experiencia que quieres ofrecer. Tu obra permanecerá privada hasta que decidas publicarla. Si solicitas portada, retratos de personajes o álbum con IA, la producción visual estará lista dentro de las siguientes 48 horas.</p></div>
       <section class="identity" aria-labelledby="identityTitle">
         <div><p class="eyebrow">TU ESPACIO PRIVADO</p><h2 id="identityTitle">Crea primero. Guarda cuando esté listo.</h2><p id="authStatus">Puedes generar una vista previa sin iniciar sesión.</p></div>
         <div id="authForm" class="auth-form"><label>Correo electrónico<input id="email" type="email" autocomplete="email" placeholder="tu@correo.cl"></label><button id="loginBtn" class="ghost" type="button">ENVIAR ENLACE DE ACCESO</button></div>
@@ -53,7 +53,14 @@
         <fieldset class="character-fieldset">
           <legend>Personajes <span>hasta 4 gratis</span></legend>
           <p class="character-help">Debes presentar al menos al protagonista. Puedes sumar hasta tres personajes más. Las imágenes de los personajes son opcionales y no consumen las imágenes del álbum.</p>
-          <div id="charactersList" class="characters-list"></div>
+          <div id="charactersList" class="characters-list">
+            <article class="character-card">
+              <div class="character-card-head"><div><span>PERSONAJE 1</span><h3>Protagonista</h3></div><small>OBLIGATORIO</small></div>
+              <div class="field-grid"><label>Nombre<input maxlength="80" placeholder="Nombre del personaje"></label><label>Rol<select disabled><option selected>Protagonista</option></select></label></div>
+              <label>Descripción<textarea maxlength="1200" rows="4" placeholder="Apariencia, personalidad y detalles importantes."></textarea></label>
+              <div class="portrait-options"><span><strong>Imagen del personaje</strong><small>Podrás subir una fotografía, crearla con IA o continuar sin imagen.</small></span></div>
+            </article>
+          </div>
           <button id="addCharacterBtn" class="ghost add-character" type="button">＋ AÑADIR OTRO PERSONAJE</button>
         </fieldset>
         <fieldset class="story-source">
