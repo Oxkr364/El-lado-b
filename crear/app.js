@@ -2,6 +2,7 @@ import { MAX_FREE_IMAGES, MAX_FREE_CHARACTERS, runStoryAgents } from '../plan-b/
 const $ = id => document.getElementById(id);
 const db = window.supabase?.createClient('https://bqrwcmrpzvtjoebmqiji.supabase.co', 'sb_publishable_XK4dh9Ch_7MebSMO7JJm7Q_8CXu2Qa8');
 const PUBLIC_CREATOR_URL = 'https://el-lado-b-git-codex-plan-b-story-engine-el-lado-b.vercel.app/crear/';
+const GEN_ADMIN_EMAIL = 'oxkraraya364@gmail.com';
 const AUTH_REDIRECT_URL = ['localhost', '127.0.0.1'].includes(location.hostname) ? PUBLIC_CREATOR_URL : new URL('./', location.href).href;
 let selectedImages = [], previewUrls = [], characters = [], currentUser = null, generatedResult = null, coverImage = null, coverPreviewUrl = null;
 let magicLinkCooldown = null;
@@ -92,7 +93,21 @@ function renderImages() {
 async function animateLog(log) { $('pipelineState').className = 'status working'; $('pipelineState').textContent = 'PREPARANDO TU HISTORIA'; for (const message of ['Leyendo tu relato…', 'Organizando los recuerdos…', 'Preparando los personajes…', 'Construyendo la vista previa…']) { $('processingMessage').textContent = message; await new Promise(resolve => setTimeout(resolve, Math.max(180, log.length * 24))); } }
 function storySafetyMessage(story) { return story.ageRating === '18+' ? 'Tu obra fue aprobada como contenido sensual no explícito para mayores de 18 años.' : 'Tu obra superó la revisión editorial y está lista para revisar.'; }
 function blueprintFor(story) { return story.planBBlueprint ?? generatedResult?.log?.find(item => item.agent === 'directorPlanB')?.data?.blueprint ?? null; }
-function genEmailHref(order) { return order?.notification ? `mailto:?subject=${encodeURIComponent(order.notification.subject)}&body=${encodeURIComponent(order.notification.body)}` : ''; }
+function genEmailHref(order) { return order?.notification ? `mailto:${GEN_ADMIN_EMAIL}?subject=${encodeURIComponent(order.notification.subject)}&body=${encodeURIComponent(order.notification.body)}` : ''; }
+async function sendGenOrder(order, storyId) {
+  if (!order?.notification || order.status !== 'pending') return { sent: false, skipped: true };
+  const { data: sessionData } = await db.auth.getSession();
+  const token = sessionData.session?.access_token;
+  if (!token) throw new Error('La sesión expiró antes de enviar la orden visual.');
+  const response = await fetch('/api/gen-order', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+    body: JSON.stringify({ storyId, order })
+  });
+  const result = await response.json().catch(() => ({}));
+  if (!response.ok) throw new Error(result.error || 'No fue posible enviar la orden visual.');
+  return result;
+}
 function setPublishState() {
   const publish = $('publishBtn'), open = $('openPublishedBtn');
   if (!publish) return;
@@ -110,7 +125,7 @@ function renderPreview(result) {
   const story = result.story, pages = $('previewPages'); $('previewTitle').textContent = story.title; const experiences = ['lectura']; if (story.modules.album) experiences.push('álbum'); if (story.modules.planB) experiences.push('Plan B'); if (story.ageRating === '18+') experiences.push('+18'); $('previewMeta').textContent = `Por ${story.author} · ${story.pages.length} páginas · ${story.characters.length} personajes · ${experiences.join(' + ')}`; pages.innerHTML = '';
   const proposal = document.createElement('article'); proposal.className = 'work-proposal'; proposal.innerHTML = `<span>ESTA OBRA PROPONE</span><h3>${story.synopsis}</h3><p>${story.modules.planB ? 'Conoce primero la historia original y después interviene en sus momentos decisivos.' : story.modules.album ? 'Lee la historia y recorre también su álbum visual.' : 'Una experiencia de lectura centrada en la historia original.'}</p>`; pages.appendChild(proposal);
   const gen = story.visualWorkOrder;
-  if (gen) { const order = document.createElement('article'); order.className = 'gen-work-order'; order.innerHTML = `<span>GERENTE GEN · PRODUCCIÓN VISUAL</span><h3>${gen.status === 'pending' ? 'Orden visual preparada' : 'Sin trabajo visual pendiente'}</h3><p>${gen.status === 'pending' ? `${gen.summary.totalImagesToGenerate} imágenes pendientes: ${gen.summary.charactersToGenerate} personajes, ${gen.summary.cover === 'generate' ? '1 portada' : 'portada cargada'} y ${gen.summary.albumToGenerate} escenas de álbum. Plazo máximo: 48 horas.` : 'La obra ya incluye todos sus recursos visuales.'}</p><small>Primero personajes, luego portada y finalmente álbum. Un resultado por imagen; solo se repite ante una falla técnica.</small>`; if (gen.status === 'pending') { const send = document.createElement('a'); send.className = 'gen-email'; send.href = genEmailHref(gen); send.textContent = 'ENVIAR ORDEN A GEN POR CORREO →'; order.appendChild(send); } pages.appendChild(order); }
+  if (gen) { const order = document.createElement('article'); order.className = 'gen-work-order'; order.innerHTML = `<span>GERENTE GEN · PRODUCCIÓN VISUAL</span><h3>${gen.status === 'pending' ? 'Orden visual preparada' : 'Sin trabajo visual pendiente'}</h3><p>${gen.status === 'pending' ? `${gen.summary.totalImagesToGenerate} imágenes pendientes: ${gen.summary.charactersToGenerate} personajes, ${gen.summary.cover === 'generate' ? '1 portada' : 'portada cargada'} y ${gen.summary.albumToGenerate} escenas de álbum. Se enviará automáticamente al guardar. Plazo máximo: 48 horas.` : 'La obra ya incluye todos sus recursos visuales.'}</p><small>Primero personajes, luego portada y finalmente álbum. Un resultado por imagen; solo se repite ante una falla técnica.</small>`; if (gen.status === 'pending') { const send = document.createElement('a'); send.className = 'gen-email'; send.href = genEmailHref(gen); send.textContent = `RESPALDO MANUAL A ${GEN_ADMIN_EMAIL} →`; order.appendChild(send); } pages.appendChild(order); }
   const group = document.createElement('section'); group.className = 'character-preview-group';
   story.characters.forEach((character, index) => { const card = document.createElement('article'), portrait = document.createElement('div'), copy = document.createElement('div'), label = document.createElement('span'), name = document.createElement('h3'), description = document.createElement('p'); card.className = 'character-preview-card'; portrait.className = 'character-portrait'; if (characters[index]?.previewUrl) { const image = document.createElement('img'); image.src = characters[index].previewUrl; image.alt = `Retrato de ${character.name}`; portrait.appendChild(image); } else portrait.textContent = character.name.slice(0, 1).toUpperCase(); label.textContent = character.role === 'protagonist' ? 'PROTAGONISTA' : character.role === 'coprotagonist' ? 'COPROTAGONISTA' : 'PERSONAJE SECUNDARIO'; name.textContent = character.name; description.textContent = character.description; copy.append(label, name, description); if (character.relationship) { const relation = document.createElement('small'); relation.textContent = character.relationship; copy.appendChild(relation); } card.append(portrait, copy); group.appendChild(card); }); pages.appendChild(group);
   story.pages.forEach(page => { const article = document.createElement('article'), number = document.createElement('span'), title = document.createElement('h3'), text = document.createElement('p'); number.textContent = String(page.position).padStart(2, '0'); title.textContent = page.title; text.textContent = page.text; article.append(number); if (page.imageIndex !== null && previewUrls[page.imageIndex]) { const image = document.createElement('img'); image.src = previewUrls[page.imageIndex]; image.alt = `Fotografía asociada a ${page.title}`; article.appendChild(image); } article.append(title, text); pages.appendChild(article); });
@@ -173,7 +188,17 @@ async function persistStory() {
     for (let i = 0; i < story.characters.length; i++) { const character = story.characters[i], local = characters[i]; let path = null, status = character.portraitSource === 'ai' ? 'pending' : 'none'; if (character.portraitSource === 'upload' && local?.image) { path = `${currentUser.id}/${data.id}/characters/${crypto.randomUUID()}.${local.image.name.split('.').pop()}`; const { error: portraitError } = await db.storage.from('story-media').upload(path, local.image, { contentType: local.image.type }); if (portraitError) throw portraitError; uploadedPaths.push(path); status = 'ready'; } rows.push({ story_id: data.id, owner_id: currentUser.id, name: character.name, description: character.description, role: character.role, relationship: character.relationship, position: i + 1, portrait_source: character.portraitSource, portrait_storage_path: path, portrait_status: status, ai_prompt: character.portraitSource === 'ai' ? `${character.name}: ${character.description}` : null }); }
     const { error: characterError } = await db.from('user_story_characters').insert(rows); if (characterError) throw characterError;
     const { error: eventsError } = await db.from('user_story_agent_events').insert(generatedResult.log.map(item => ({ story_id: data.id, owner_id: currentUser.id, agent: item.agent, status: item.status, result: item.result, detail: item.detail, event_data: item.data }))); if (eventsError) throw eventsError;
-    $('saveTitle').textContent = 'Borrador guardado de forma segura.'; $('saveDetail').textContent = `Identificador privado: ${data.slug}`; button.textContent = 'BORRADOR GUARDADO ✓'; button.disabled = true; setPublishState(); localStorage.removeItem('plan_b_pending_save'); await loadSavedStories();
+    let visualMessage = '';
+    if (story.visualWorkOrder?.status === 'pending') {
+      try {
+        await sendGenOrder(story.visualWorkOrder, data.id);
+        await db.from('user_story_agent_events').insert({ story_id: data.id, owner_id: currentUser.id, agent: 'gen', status: 'ok', result: 'orden_visual_enviada', detail: `Orden enviada a ${GEN_ADMIN_EMAIL}.`, event_data: { recipient: GEN_ADMIN_EMAIL, deadlineHours: 48, sentAt: new Date().toISOString() } });
+        visualMessage = ` Orden visual enviada a ${GEN_ADMIN_EMAIL}; plazo máximo: 48 horas.`;
+      } catch (mailError) {
+        visualMessage = ` La obra quedó guardada, pero el correo automático falló: ${mailError.message} Usa el respaldo manual de la orden.`;
+      }
+    }
+    $('saveTitle').textContent = 'Borrador guardado de forma segura.'; $('saveDetail').textContent = `Identificador privado: ${data.slug}.${visualMessage}`; button.textContent = 'BORRADOR GUARDADO ✓'; button.disabled = true; setPublishState(); localStorage.removeItem('plan_b_pending_save'); await loadSavedStories();
   } catch (error) { if (uploadedPaths.length) await db.storage.from('story-media').remove(uploadedPaths); if (savedStory?.id) await db.from('user_stories').delete().eq('id', savedStory.id); saveInProgress = false; setErrors([`No se pudo guardar: ${error.message}`]); button.disabled = false; button.textContent = 'INTENTAR NUEVAMENTE'; }
 }
 
